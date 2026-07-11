@@ -9,8 +9,8 @@
   "scripts": {
     "dev:bot": "npm run dev --workspace=apps/bot",
     "dev:web": "npm run dev --workspace=apps/web",
-    "build:bot": "npm run build --workspace=packages/db && npm run build --workspace=apps/bot",
-    "build:web": "npm run build --workspace=packages/db && npm run build --workspace=apps/web",
+    "build:bot": "prisma generate --schema=packages/db/prisma/schema.prisma && npm run build --workspace=packages/db && npm run build --workspace=apps/bot",
+    "build:web": "prisma generate --schema=packages/db/prisma/schema.prisma && npm run build --workspace=packages/db && npm run build --workspace=apps/web",
     "postinstall": "prisma generate --schema=packages/db/prisma/schema.prisma"
   }
 }
