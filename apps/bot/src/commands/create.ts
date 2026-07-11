@@ -73,7 +73,7 @@ export async function generateLobbyEmbed(lobbyId: string) {
       { name: '🏆 牌位限制', value: lobby.minRank || '無限制', inline: true },
       { 
         name: `👥 隊伍成員 (${currentCount}/${maxCount})`, 
-        value: lobby.members.map((m, index) => `${index + 1}. <@${m.userId}> (ValoScore: ${m.user.valoScore})`).join('\n') || '尚無成員'
+        value: lobby.members.map((m, index) => `${index + 1}. <@${m.userId}> (ValoScore: ${m.user.valoScore}) ${m.inVoice ? '🎙️ [語音中]' : ''}`).join('\n') || '尚無成員'
       }
     )
     .setFooter({ text: `Lobby ID: ${lobby.id} • 數據與 ValoLink.gg 網頁同步` })

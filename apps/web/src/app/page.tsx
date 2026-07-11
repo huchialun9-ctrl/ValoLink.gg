@@ -3,6 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import styles from './page.module.css';
 
+interface LobbyMember {
+  id: string;
+  riotId: string;
+  inVoice: boolean;
+  valoScore: number;
+}
+
 interface Lobby {
   id: string;
   mode: string;
@@ -13,6 +20,7 @@ interface Lobby {
   valoScore: number;
   currentCount: number;
   maxCount: number;
+  membersList?: LobbyMember[];
 }
 
 export default function Home() {
@@ -279,6 +287,34 @@ export default function Home() {
                     人數: <span className={styles.memberCountActive}>{lobby.currentCount}</span> / {lobby.maxCount}
                   </div>
                 </div>
+
+                {/* Real-time Voice Link Members Roster */}
+                {lobby.membersList && lobby.membersList.length > 0 && (
+                  <div style={{ marginTop: '16px', borderTop: '1px solid #f1f2f4', paddingTop: '12px' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: '600' }}>隊員語音狀態 (Voice Status)</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {lobby.membersList.map((m) => (
+                        <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ 
+                              width: '8px', 
+                              height: '8px', 
+                              borderRadius: '50%', 
+                              background: m.inVoice ? '#238636' : '#cbd5e1',
+                              boxShadow: m.inVoice ? '0 0 8px #2ea44f' : 'none',
+                              display: 'inline-block'
+                            }} />
+                            <span style={{ color: m.inVoice ? '#238636' : 'var(--text-primary)', fontWeight: m.inVoice ? '600' : 'normal' }}>
+                              {m.riotId}
+                            </span>
+                            {m.inVoice && <span style={{ fontSize: '0.75rem', color: '#238636', fontWeight: '600' }}>(🎙️ 語音中)</span>}
+                          </span>
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>信用: {m.valoScore} pts</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

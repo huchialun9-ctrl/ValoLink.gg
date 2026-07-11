@@ -31,7 +31,13 @@ export async function GET() {
       captainAvatar: (lobby.captain.riotId || '?')[0].toUpperCase(),
       valoScore: lobby.captain.valoScore,
       currentCount: lobby.members.length,
-      maxCount: 5
+      maxCount: 5,
+      membersList: lobby.members.map(m => ({
+        id: m.userId,
+        riotId: m.user.riotId || `Discord:${m.userId}`,
+        inVoice: m.inVoice,
+        valoScore: m.user.valoScore
+      }))
     }));
 
     return NextResponse.json(formattedLobbies);

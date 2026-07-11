@@ -213,6 +213,92 @@ client.on('interactionCreate', async (interaction: Interaction) => {
   }
 });
 
+client.on('voiceStateUpdate', async (oldState, newState) => {
+  const userId = newState.id;
+  const oldChannelId = oldState.channelId;
+  const newChannelId = newState.channelId;
+
+  // Case 1: User joined a channel
+  if (newChannelId && oldChannelId !== newChannelId) {
+    try {
+      const lobby = await prisma.lobby.findFirst({
+        where: {
+          voiceChannelId: newChannelId
+        },
+        include: {
+          members: true
+        }
+      });
+
+      if (lobby) {
+        const isMember = lobby.members.some(m => m.userId === userId);
+        if (isMember) {
+          await prisma.lobbyMember.update({
+            where: {
+              lobbyId_userId: { lobbyId: lobby.id, userId }
+            },
+            data: { inVoice: true }
+          });
+
+          // Refresh the Discord Embed card
+          const payload = await generateLobbyEmbed(lobby.id);
+          if (payload && lobby.discordMessageId && lobby.discordChannelId) {
+            const channel = await client.channels.fetch(lobby.discordChannelId);
+            if (channel?.isTextBased()) {
+              const msg = await channel.messages.fetch(lobby.discordMessageId);
+              if (msg) {
+                await msg.edit(payload);
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error handling voiceStateUpdate (join):', err);
+    }
+  }
+
+  // Case 2: User left a channel
+  if (oldChannelId && oldChannelId !== newChannelId) {
+    try {
+      const lobby = await prisma.lobby.findFirst({
+        where: {
+          voiceChannelId: oldChannelId
+        },
+        include: {
+          members: true
+        }
+      });
+
+      if (lobby) {
+        const isMember = lobby.members.some(m => m.userId === userId);
+        if (isMember) {
+          await prisma.lobbyMember.update({
+            where: {
+              lobbyId_userId: { lobbyId: lobby.id, userId }
+            },
+            data: { inVoice: false }
+          });
+
+          // Refresh the Discord Embed card
+          const payload = await generateLobbyEmbed(lobby.id);
+          if (payload && lobby.discordMessageId && lobby.discordChannelId) {
+            const channel = await client.channels.fetch(lobby.discordChannelId);
+            if (channel?.isTextBased()) {
+              const msg = await channel.messages.fetch(lobby.discordMessageId);
+              if (msg) {
+                await msg.edit(payload);
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error handling voiceStateUpdate (leave):', err);
+    }
+  }
+});
+
 const token = process.env.DISCORD_TOKEN;
 if (token) {
   client.login(token).catch(err => {

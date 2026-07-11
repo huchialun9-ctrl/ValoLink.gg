@@ -41,6 +41,7 @@ model LobbyMember {
   lobby    Lobby    @relation(fields: [lobbyId], references: [id], onDelete: Cascade)
   userId   String
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inVoice  Boolean  @default(false)
   joinedAt DateTime @default(now())
 
   @@id([lobbyId, userId])
