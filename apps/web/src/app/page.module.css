@@ -1,0 +1,199 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.logo {
+  font-family: var(--font-accent);
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logoDot {
+  color: var(--primary-red);
+}
+
+.nav {
+  display: flex;
+  gap: 32px;
+}
+
+.navLink {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+}
+
+.navLink:hover, .navActive {
+  color: var(--primary-red);
+}
+
+.hero {
+  text-align: center;
+  padding: 80px 0 40px;
+  position: relative;
+}
+
+.heroTitle {
+  font-family: var(--font-accent);
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #fff 0%, #7e8b98 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.heroHighlight {
+  color: var(--primary-red);
+  -webkit-text-fill-color: var(--primary-red);
+  animation: pulseGlow 3s infinite;
+}
+
+.heroSubtitle {
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  max-width: 600px;
+  margin: 0 auto 32px;
+}
+
+.heroButtons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.lobbySection {
+  padding: 60px 0;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.sectionTitle {
+  font-family: var(--font-accent);
+  font-size: 2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.filters {
+  display: flex;
+  gap: 12px;
+}
+
+.filterBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.filterBtnActive, .filterBtn:hover {
+  background: var(--primary-red);
+  border-color: var(--primary-red);
+  color: #fff;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.modeBadge {
+  background: rgba(255, 70, 85, 0.1);
+  border: 1px solid var(--primary-red);
+  color: var(--primary-red);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rankLimit {
+  font-size: 0.85rem;
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.cardDesc {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  min-height: 48px;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 16px;
+}
+
+.captainInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatarMock {
+  width: 32px;
+  height: 32px;
+  background: #2b3a4a;
+  border-radius: 50%;
+  border: 1.5px solid var(--primary-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.captainName {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.captainScore {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.memberCount {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.memberCountActive {
+  color: var(--accent-cyan);
+}

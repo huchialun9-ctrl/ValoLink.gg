@@ -1,0 +1,57 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String        @id // Discord User ID
+  riotId       String?       // Riot ID (e.g., User#TAG)
+  rank         String?       // Current game rank (e.g., Diamond 2, Immortal 1)
+  valoScore    Int           @default(100) // Reputation score
+  squadsJoined LobbyMember[]
+  squadsLed    Lobby[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Lobby {
+  id               String        @id @default(uuid())
+  discordMessageId String?       @unique // Discord message ID of the lobby embed
+  discordChannelId String?
+  discordGuildId   String?
+  voiceChannelId   String?       // Temporary tactical voice channel ID
+  captainId        String
+  captain          User          @relation(fields: [captainId], references: [id])
+  gameMode         String        // e.g., Competitive, Unrated, Swiftplay
+  minRank          String?
+  maxRank          String?
+  description      String?
+  status           String        @default("OPEN") // OPEN, FULL, PLAYING, CLOSED
+  members          LobbyMember[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model LobbyMember {
+  lobbyId  String
+  lobby    Lobby    @relation(fields: [lobbyId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now())
+
+  @@id([lobbyId, userId])
+}
+
+model ServerConfig {
+  guildId         String  @id // Discord Guild (Server) ID
+  lobbyChannelId  String? // Channel where the bot is authorized to post squads
+  voiceCategoryId String? // Category ID under which dynamic voice channels are created
+  autoVoice       Boolean @default(true)
+  minValoScore    Int     @default(50)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
