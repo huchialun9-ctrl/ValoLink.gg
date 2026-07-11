@@ -162,14 +162,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
-    // 1. Create/update captain user
+    // 1. Ensure captain exists in DB — never overwrite real rank data
     await prisma.user.upsert({
       where: { id: discordId },
-      update: { riotId: captainName, rank: minRank },
+      update: {},  // do not overwrite riotId or rank from lobby form
       create: {
         id: discordId,
-        riotId: captainName,
-        rank: minRank,
         valoScore: 100
       }
     });

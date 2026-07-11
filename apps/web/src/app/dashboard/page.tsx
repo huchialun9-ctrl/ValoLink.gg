@@ -290,10 +290,18 @@ export default function Dashboard() {
             />
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                <h2 style={{ fontSize: '1.8rem', fontWeight: 700, letterSpacing: '-0.5px' }}>{stats.riotId}</h2>
-                <span style={{ background: '#ddf4ff', color: 'var(--primary-blue)', border: '1px solid rgba(9,105,218,0.2)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
-                  {stats.rank}
-                </span>
+                <h2 style={{ fontSize: '1.8rem', fontWeight: 700, letterSpacing: '-0.5px' }}>
+                  {stats.riotId || session.username}
+                </h2>
+                {stats.rank ? (
+                  <span style={{ background: '#ddf4ff', color: 'var(--primary-blue)', border: '1px solid rgba(9,105,218,0.2)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
+                    {stats.rank}
+                  </span>
+                ) : (
+                  <span style={{ background: '#fff8f0', color: '#d97706', border: '1px solid #fde68a', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
+                    ⚠️ 未綁定牌位
+                  </span>
+                )}
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
                 Discord 帳號: @{session.username} (ID: {session.id})
@@ -332,15 +340,26 @@ export default function Dashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
             <div className="glass-card" style={{ padding: '20px' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>🎮 累計組隊場次</span>
-              <h3 style={{ fontSize: '2rem', marginTop: '8px', fontWeight: 700 }}>{stats.squadCount} <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>場對局</span></h3>
+              <h3 style={{ fontSize: '2rem', marginTop: '8px', fontWeight: 700 }}>
+                {stats.squadCount}
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}> 場對局</span>
+              </h3>
             </div>
             <div className="glass-card" style={{ padding: '20px' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>🛡️ 隊友平均信用度</span>
-              <h3 style={{ fontSize: '2rem', marginTop: '8px', fontWeight: 700 }}>{stats.averageTeammateScore} <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>pts</span></h3>
+              <h3 style={{ fontSize: '2rem', marginTop: '8px', fontWeight: 700 }}>
+                {stats.averageTeammateScore !== null
+                  ? <>{stats.averageTeammateScore}<span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}> pts</span></>
+                  : <span style={{ fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: '500' }}>尚無資料</span>
+                }
+              </h3>
             </div>
             <div className="glass-card" style={{ padding: '20px' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>📈 模擬勝率指標</span>
-              <h3 style={{ fontSize: '2rem', marginTop: '8px', fontWeight: 700 }}>{stats.winRate}% <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>W/L</span></h3>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>✅ 已完成對局</span>
+              <h3 style={{ fontSize: '2rem', marginTop: '8px', fontWeight: 700 }}>
+                {stats.finishedSquads ?? 0}
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}> 場</span>
+              </h3>
             </div>
           </div>
 

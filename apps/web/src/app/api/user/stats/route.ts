@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 1. Fetch user profile
+    // 1. Fetch user profile with full reputation log
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -23,10 +23,10 @@ export async function GET(request: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // 2. Fetch user's historical lobbies (both led and joined)
+    // 2. Fetch lobbies this user has joined, with all members
     const lobbiesJoined = await prisma.lobbyMember.findMany({
       where: { userId },
       include: {
@@ -34,30 +34,26 @@ export async function GET(request: Request) {
           include: {
             captain: true,
             members: {
-              include: {
-                user: true
-              }
+              include: { user: true }
             }
           }
         }
       },
-      orderBy: {
-        joinedAt: 'desc'
-      }
+      orderBy: { joinedAt: 'desc' }
     });
 
     const historicalSquads = lobbiesJoined.map(mj => ({
       id: mj.lobby.id,
       gameMode: mj.lobby.gameMode,
       minRank: mj.lobby.minRank || 'Unranked',
-      description: mj.lobby.description || '無備註。',
+      description: mj.lobby.description || '',
       status: mj.lobby.status,
       captain: mj.lobby.captain.riotId || `Discord:${mj.lobby.captainId}`,
       joinedAt: mj.joinedAt.toISOString().split('T')[0],
       memberCount: mj.lobby.members.length
     }));
 
-    // 3. Extract unique list of past teammates
+    // 3. Extract unique past teammates (excluding self)
     const teammateMap = new Map<string, { id: string; riotId: string; valoScore: number }>();
     lobbiesJoined.forEach(mj => {
       mj.lobby.members.forEach(member => {
@@ -72,30 +68,37 @@ export async function GET(request: Request) {
     });
     const pastTeammates = Array.from(teammateMap.values());
 
-    // 4. Construct credit history trend line data
-    // Map reputation log history or initialize with default if empty
-    const reputationTrend = user.reputationLogs.map(log => ({
-      date: log.createdAt.toISOString().split('T')[0],
-      score: log.newScore,
-      reason: log.reason || '系統調整'
-    }));
-
-    // Prepend initial baseline score
+    // 4. Build ValoScore trend from real reputation log entries only
+    // First point = account creation baseline, subsequent = real log events
     const creditHistory = [
       { date: user.createdAt.toISOString().split('T')[0], score: 100, reason: '帳號建立' },
-      ...reputationTrend
+      ...user.reputationLogs.map(log => ({
+        date: log.createdAt.toISOString().split('T')[0],
+        score: log.newScore,
+        reason: log.reason || '信用分調整'
+      }))
     ];
 
-    // Compute simple dashboard metrics
+    // 5. Compute real aggregate stats — no hardcoded values
+    const totalSquads = lobbiesJoined.length;
+    const avgTeammateScore = pastTeammates.length > 0
+      ? Math.round(
+          pastTeammates.reduce((acc, t) => acc + t.valoScore, 0) / pastTeammates.length
+        )
+      : null; // null = no data yet, shown as N/A in UI
+
+    // Real win rate: count of CLOSED lobbies user was in vs total finished
+    const finishedSquads = lobbiesJoined.filter(
+      mj => mj.lobby.status === 'CLOSED' || mj.lobby.status === 'PLAYING'
+    ).length;
+
     const stats = {
-      squadCount: lobbiesJoined.length,
-      averageTeammateScore: pastTeammates.length > 0 
-        ? Math.round(pastTeammates.reduce((acc, curr) => acc + curr.valoScore, 0) / pastTeammates.length)
-        : 100,
+      squadCount: totalSquads,
+      finishedSquads,
+      averageTeammateScore: avgTeammateScore,
       valoScore: user.valoScore,
-      riotId: user.riotId || '未認證 Riot ID',
-      rank: user.rank || '未認證牌位',
-      winRate: 54 // Placeholder metric for MVP front-end visual
+      riotId: user.riotId || null,
+      rank: user.rank || null,
     };
 
     return NextResponse.json({
@@ -106,7 +109,7 @@ export async function GET(request: Request) {
     });
 
   } catch (error) {
-    console.error('Failed to compile user dashboard stats:', error);
+    console.error('[stats] Failed to compile dashboard stats:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

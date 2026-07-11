@@ -5,61 +5,55 @@ dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
-// Deterministic mock fallback list
-const RANKS = [
-  'Iron',
-  'Bronze',
-  'Silver',
-  'Gold',
-  'Platinum',
-  'Diamond',
-  'Ascendant',
-  'Immortal',
-  'Radiant'
-];
-
 /**
  * Fetches the user's competitive rank based on their Riot ID (e.g. "User#TAG").
- * If the RIOT_API_KEY is not defined, it generates a deterministic rank based on the string hash.
+ * Uses the real Riot API. Returns null if the account is not found or API key is missing.
  */
-export async function fetchUserRank(riotId: string): Promise<string> {
+export async function fetchUserRank(riotId: string): Promise<string | null> {
   if (!riotId || !riotId.includes('#')) {
-    return 'Unranked';
+    return null;
   }
 
-  // If a real API key exists, we would fetch from Riot's endpoint:
-  // e.g., https://asia.api.riotgames.com/riot/account/v1/accounts/by-riot-id/
-  if (RIOT_API_KEY && RIOT_API_KEY.startsWith('RGAPI-')) {
-    try {
-      // Production code to fetch real Riot account and Valorant rank
-      const [name, tag] = riotId.split('#');
-      const accountRes = await fetch(
-        `https://asia.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?api_key=${RIOT_API_KEY}`
-      );
-      if (accountRes.ok) {
-        const accountData = await accountRes.json();
-        const puuid = accountData.puuid;
-        
-        // Fetch Valorant rank details
-        const rankRes = await fetch(
-          `https://ap.api.riotgames.com/val/ranked/v1/leaderboards/by-act/current?size=1&puuid=${puuid}&api_key=${RIOT_API_KEY}`
-        );
-        if (rankRes.ok) {
-          const rankData = await rankRes.json();
-          // Map rating tiers to names
-          return rankData.players?.[0]?.tierName || 'Gold';
-        }
-      }
-    } catch (err) {
-      console.warn('Riot API request failed, falling back to database/mock:', err);
+  if (!RIOT_API_KEY || !RIOT_API_KEY.startsWith('RGAPI-')) {
+    console.warn('[Riot API] RIOT_API_KEY is not set or invalid. Cannot fetch real rank.');
+    return null;
+  }
+
+  try {
+    const [name, tag] = riotId.split('#');
+
+    // Step 1: Resolve PUUID from Riot ID
+    const accountRes = await fetch(
+      `https://asia.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
+      { headers: { 'X-Riot-Token': RIOT_API_KEY } }
+    );
+
+    if (!accountRes.ok) {
+      const err = await accountRes.text();
+      console.warn(`[Riot API] Account lookup failed for "${riotId}":`, err);
+      return null;
     }
-  }
 
-  // Deterministic fallback based on Riot ID hash
-  let hash = 0;
-  for (let i = 0; i < riotId.length; i++) {
-    hash = riotId.charCodeAt(i) + ((hash << 5) - hash);
+    const accountData = await accountRes.json();
+    const puuid = accountData.puuid;
+
+    // Step 2: Fetch Valorant MMR / rank via Henrik third-party API
+    // (Official Riot API does not publicly expose Valorant ranked tier by PUUID directly)
+    // We use a well-known community API proxy as a workaround:
+    const rankRes = await fetch(
+      `https://api.henrikdev.xyz/valorant/v1/by-puuid/mmr/ap/${puuid}`,
+      { headers: { 'Authorization': RIOT_API_KEY } }
+    );
+
+    if (rankRes.ok) {
+      const rankData = await rankRes.json();
+      const tier = rankData?.data?.currenttierpatched;
+      if (tier) return tier; // e.g., "Diamond 2", "Immortal 1"
+    }
+
+    return null;
+  } catch (err) {
+    console.error('[Riot API] Unexpected error fetching rank:', err);
+    return null;
   }
-  const index = Math.abs(hash) % RANKS.length;
-  return RANKS[index];
 }

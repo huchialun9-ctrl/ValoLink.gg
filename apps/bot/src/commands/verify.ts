@@ -25,32 +25,36 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   try {
     await interaction.deferReply({ ephemeral: true });
 
-    // 1. Fetch rank from Riot API / Deterministic generator
+    // 1. Fetch REAL rank from Riot API (returns null if unavailable)
     const rank = await fetchUserRank(riotId);
 
-    // 2. Update database
+    // 2. Update database — rank is null if Riot API couldn't verify
     const user = await prisma.user.upsert({
       where: { id: userId },
       update: {
         riotId,
-        rank
+        rank  // null = unverified, NOT fabricated
       },
       create: {
         id: userId,
         riotId,
         rank,
-        valoScore: 100 // Default score
+        valoScore: 100
       }
     });
 
     const embed = new EmbedBuilder()
-      .setColor('#4eff8a') // Green Success
-      .setTitle('✅ Riot 帳號綁定暨牌位同步成功')
-      .setDescription('您的帳號已成功與 ValoLink 智慧平台連結！')
+      .setColor('#4eff8a')
+      .setTitle('✅ Riot 帳號綁定成功')
+      .setDescription('您的 Discord 帳號已成功與 ValoLink 平台連結！')
       .addFields(
         { name: '🔗 Discord 帳號', value: `<@${userId}>`, inline: true },
         { name: '🎮 Riot ID', value: user.riotId || 'N/A', inline: true },
-        { name: '🏆 自動同步牌位', value: `**${user.rank}**`, inline: true },
+        { 
+          name: '🏆 牌位', 
+          value: user.rank ? `**${user.rank}**` : '⚠️ 無法從 Riot API 取得牌位（可能為未排名或 API Key 限制）', 
+          inline: true 
+        },
         { name: '🛡️ 初始信用值', value: `${user.valoScore} pts`, inline: true }
       )
       .setTimestamp()
