@@ -355,11 +355,3 @@ if (token) {
   console.warn('⚠️ Warning: DISCORD_TOKEN is not defined in environment variables. Discord bot is idle.');
 }
 
-// Render deployment: spin up a native HTTP server to respond to port scanning requests
-const PORT = process.env.PORT || 3000;
-http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('ValoLink.gg Discord Bot is running! 🚀');
-}).listen(PORT, () => {
-  console.log(`Port binding health server listening on port ${PORT}`);
-});
