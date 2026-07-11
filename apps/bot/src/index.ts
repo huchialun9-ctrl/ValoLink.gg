@@ -6,6 +6,8 @@ import { execute as executeCreate, generateLobbyEmbed } from './commands/create'
 import { execute as executeVerify } from './commands/verify';
 import { execute as executeProfile } from './commands/profile';
 import { execute as executeRate } from './commands/rate';
+import { execute as executeConfig } from './commands/config';
+import { execute as executeRank } from './commands/rank';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 dotenv.config();
@@ -34,6 +36,10 @@ client.on('interactionCreate', async (interaction: Interaction) => {
       await executeProfile(interaction);
     } else if (interaction.commandName === 'rate') {
       await executeRate(interaction);
+    } else if (interaction.commandName === 'config') {
+      await executeConfig(interaction);
+    } else if (interaction.commandName === 'rank') {
+      await executeRank(interaction);
     }
     return;
   }
