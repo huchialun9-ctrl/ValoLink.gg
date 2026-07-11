@@ -2,185 +2,198 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
+  margin-bottom: 32px;
 }
 
 .logo {
-  font-family: var(--font-accent);
   font-weight: 700;
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  letter-spacing: -0.5px;
 }
 
 .logoDot {
-  color: var(--primary-red);
+  color: var(--primary-blue);
 }
 
 .nav {
   display: flex;
-  gap: 32px;
+  gap: 24px;
 }
 
 .navLink {
   color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: color 0.2s ease;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: color 0.1s ease;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
 }
 
-.navLink:hover, .navActive {
-  color: var(--primary-red);
+.navLink:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+}
+
+.navActive {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  font-weight: 600;
 }
 
 .hero {
-  text-align: center;
-  padding: 80px 0 40px;
-  position: relative;
+  text-align: left;
+  padding: 40px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin-bottom: 40px;
+  box-shadow: var(--shadow-sm);
 }
 
 .heroTitle {
-  font-family: var(--font-accent);
-  font-size: 4rem;
-  font-weight: 900;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 16px;
-  background: linear-gradient(135deg, #fff 0%, #7e8b98 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -0.8px;
+  margin-bottom: 12px;
+  color: var(--text-primary);
 }
 
 .heroHighlight {
-  color: var(--primary-red);
-  -webkit-text-fill-color: var(--primary-red);
-  animation: pulseGlow 3s infinite;
+  color: var(--primary-blue);
 }
 
 .heroSubtitle {
   color: var(--text-secondary);
-  font-size: 1.2rem;
-  max-width: 600px;
-  margin: 0 auto 32px;
+  font-size: 1.05rem;
+  max-width: 800px;
+  margin-bottom: 24px;
+  line-height: 1.6;
 }
 
 .heroButtons {
   display: flex;
-  justify-content: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .lobbySection {
-  padding: 60px 0;
+  padding: 24px 0 60px;
 }
 
 .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
 }
 
 .sectionTitle {
-  font-family: var(--font-accent);
-  font-size: 2rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
 }
 
 .filters {
   display: flex;
-  gap: 12px;
+  gap: 6px;
+  background-color: #eff1f3;
+  padding: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .filterBtn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 8px 16px;
-  border-radius: 20px;
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.1s ease;
 }
 
 .filterBtnActive, .filterBtn:hover {
-  background: var(--primary-red);
-  border-color: var(--primary-red);
-  color: #fff;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
 }
 
 .cardHeader {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .modeBadge {
-  background: rgba(255, 70, 85, 0.1);
-  border: 1px solid var(--primary-red);
-  color: var(--primary-red);
-  padding: 4px 10px;
+  background: #ddf4ff;
+  border: 1px solid rgba(9, 105, 218, 0.2);
+  color: var(--primary-blue);
+  padding: 3px 8px;
   font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-weight: 600;
+  border-radius: 20px;
 }
 
 .rankLimit {
-  font-size: 0.85rem;
-  color: var(--accent-cyan);
-  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .cardDesc {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: var(--text-primary);
-  margin-bottom: 24px;
-  min-height: 48px;
+  margin-bottom: 20px;
+  min-height: 40px;
+  line-height: 1.5;
 }
 
 .cardFooter {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 16px;
+  border-top: 1px solid #f1f2f4;
+  padding-top: 12px;
 }
 
 .captainInfo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .avatarMock {
-  width: 32px;
-  height: 32px;
-  background: #2b3a4a;
+  width: 28px;
+  height: 28px;
+  background: #f3f4f6;
   border-radius: 50%;
-  border: 1.5px solid var(--primary-red);
+  border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  font-size: 0.8rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--text-primary);
 }
 
 .captainName {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 .captainScore {
@@ -189,11 +202,12 @@
 }
 
 .memberCount {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 500;
   color: var(--text-secondary);
 }
 
 .memberCountActive {
-  color: var(--accent-cyan);
+  color: var(--text-primary);
+  font-weight: 600;
 }
