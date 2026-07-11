@@ -8,13 +8,16 @@ generator client {
 }
 
 model User {
-  id             String          @id // Discord User ID
-  riotId         String?         // Riot ID (e.g., User#TAG)
-  rank           String?         // Current game rank (e.g., Diamond 2, Immortal 1)
-  valoScore      Int             @default(100) // Reputation score
+  id             String          @id
+  riotId         String?
+  rank           String?
+  valoScore      Int             @default(100)
+  isSuspicious   Boolean         @default(false)
   squadsJoined   LobbyMember[]
   squadsLed      Lobby[]
   reputationLogs ReputationLog[]
+  ratingsGiven   RatingRecord[]  @relation("RaterRecords")
+  ratingsReceived RatingRecord[] @relation("TargetRecords")
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 }
@@ -66,4 +69,18 @@ model ReputationLog {
   newScore  Int
   reason    String?
   createdAt DateTime @default(now())
+}
+
+model RatingRecord {
+  id         String   @id @default(uuid())
+  raterId    String
+  rater      User     @relation("RaterRecords", fields: [raterId], references: [id], onDelete: Cascade)
+  targetId   String
+  target     User     @relation("TargetRecords", fields: [targetId], references: [id], onDelete: Cascade)
+  ratingType String   // 'good' | 'toxic' | 'afk'
+  suspicious Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([raterId, targetId, ratingType]) // prevent duplicate type ratings
+  @@index([raterId, targetId])
 }

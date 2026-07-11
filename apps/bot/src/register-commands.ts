@@ -7,6 +7,7 @@ import { data as profileCommandData } from './commands/profile';
 import { data as rateCommandData } from './commands/rate';
 import { data as configCommandData } from './commands/config';
 import { data as rankCommandData } from './commands/rank';
+import { data as historyCommandData } from './commands/history';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 dotenv.config(); // fallback
@@ -26,7 +27,8 @@ const commands = [
   profileCommandData.toJSON(),
   rateCommandData.toJSON(),
   configCommandData.toJSON(),
-  rankCommandData.toJSON()
+  rankCommandData.toJSON(),
+  historyCommandData.toJSON()
 ];
 
 const rest = new REST({ version: '10' }).setToken(token);

@@ -96,11 +96,40 @@ export default function Home() {
     }
   };
 
+  // Real-time lobby updates via SSE
   useEffect(() => {
-    fetchLobbies();
-    // Poll active lobbies every 5 seconds for interactive, dynamic feel
-    const interval = setInterval(fetchLobbies, 5000);
-    return () => clearInterval(interval);
+    let es: EventSource;
+    let retryTimeout: ReturnType<typeof setTimeout>;
+
+    const connect = () => {
+      es = new EventSource('/api/lobbies/stream');
+
+      es.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'snapshot' || data.type === 'update') {
+            setLobbies(data.lobbies);
+            setError(null);
+            setLoading(false);
+          }
+        } catch (err) {
+          console.error('SSE parse error:', err);
+        }
+      };
+
+      es.onerror = () => {
+        es.close();
+        // Retry connection after 5 seconds
+        retryTimeout = setTimeout(connect, 5000);
+        setError('即時連線中斷，嘗試重連...');
+      };
+    };
+
+    connect();
+    return () => {
+      es?.close();
+      clearTimeout(retryTimeout);
+    };
   }, []);
 
   const handleCreateLobby = async (e: React.FormEvent) => {

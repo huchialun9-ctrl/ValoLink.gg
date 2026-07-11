@@ -9,6 +9,7 @@ import { execute as executeProfile } from './commands/profile';
 import { execute as executeRate } from './commands/rate';
 import { execute as executeConfig } from './commands/config';
 import { execute as executeRank } from './commands/rank';
+import { execute as executeHistory } from './commands/history';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 dotenv.config();
@@ -41,6 +42,8 @@ client.on('interactionCreate', async (interaction: Interaction) => {
       await executeConfig(interaction);
     } else if (interaction.commandName === 'rank') {
       await executeRank(interaction);
+    } else if (interaction.commandName === 'history') {
+      await executeHistory(interaction);
     }
     return;
   }
@@ -355,3 +358,12 @@ if (token) {
   console.warn('⚠️ Warning: DISCORD_TOKEN is not defined in environment variables. Discord bot is idle.');
 }
 
+// Global unhandled rejection guard — prevents bot crashes from expired interactions
+process.on('unhandledRejection', (reason: any) => {
+  if (reason?.code === 10062) {
+    // DiscordAPIError[10062]: Unknown interaction (expired) — safe to ignore
+    console.warn('[Bot] Expired interaction ignored (10062)');
+    return;
+  }
+  console.error('[Bot] Unhandled rejection:', reason);
+});
