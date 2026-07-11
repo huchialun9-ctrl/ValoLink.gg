@@ -2,6 +2,9 @@ import { REST, Routes } from 'discord.js';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { data as createCommandData } from './commands/create';
+import { data as verifyCommandData } from './commands/verify';
+import { data as profileCommandData } from './commands/profile';
+import { data as rateCommandData } from './commands/rate';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 dotenv.config(); // fallback
@@ -15,7 +18,12 @@ if (!token || !clientId) {
   process.exit(1);
 }
 
-const commands = [createCommandData.toJSON()];
+const commands = [
+  createCommandData.toJSON(),
+  verifyCommandData.toJSON(),
+  profileCommandData.toJSON(),
+  rateCommandData.toJSON()
+];
 
 const rest = new REST({ version: '10' }).setToken(token);
 

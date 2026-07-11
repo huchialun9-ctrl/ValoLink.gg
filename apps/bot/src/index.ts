@@ -3,6 +3,9 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { prisma } from '@valolink/db';
 import { execute as executeCreate, generateLobbyEmbed } from './commands/create';
+import { execute as executeVerify } from './commands/verify';
+import { execute as executeProfile } from './commands/profile';
+import { execute as executeRate } from './commands/rate';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 dotenv.config();
@@ -25,6 +28,12 @@ client.on('interactionCreate', async (interaction: Interaction) => {
   if (interaction.isChatInputCommand()) {
     if (interaction.commandName === 'create') {
       await executeCreate(interaction);
+    } else if (interaction.commandName === 'verify') {
+      await executeVerify(interaction);
+    } else if (interaction.commandName === 'profile') {
+      await executeProfile(interaction);
+    } else if (interaction.commandName === 'rate') {
+      await executeRate(interaction);
     }
     return;
   }
@@ -152,10 +161,38 @@ client.on('interactionCreate', async (interaction: Interaction) => {
 
         await interaction.deferUpdate();
 
-        // Lock lobby in DB
+        const guildId = interaction.guildId;
+        let voiceChannelId: string | undefined = undefined;
+
+        if (guildId) {
+          const config = await prisma.serverConfig.findUnique({
+            where: { guildId }
+          });
+
+          if (config && config.autoVoice && interaction.guild) {
+            try {
+              // Create temporary voice channel
+              const channelName = `🎮 ValoLink #${lobbyId.slice(0, 4).toUpperCase()}`;
+              const voiceChannel = await interaction.guild.channels.create({
+                name: channelName,
+                type: 2, // GuildVoice
+                userLimit: 5,
+                parent: config.voiceCategoryId || undefined
+              });
+              voiceChannelId = voiceChannel.id;
+            } catch (vcErr) {
+              console.error('Failed to create dynamic voice channel:', vcErr);
+            }
+          }
+        }
+
+        // Lock lobby in DB and store voice channel ID
         await prisma.lobby.update({
           where: { id: lobbyId },
-          data: { status: 'PLAYING' }
+          data: { 
+            status: 'PLAYING',
+            voiceChannelId
+          }
         });
 
         // Note: Dynamic channel allocation can happen here
@@ -164,7 +201,11 @@ client.on('interactionCreate', async (interaction: Interaction) => {
           await interaction.editReply(payload);
         }
 
-        await interaction.followUp({ content: '隊伍已鎖定出發！祝各位好運，特務！🎮', ephemeral: false });
+        let followUpMsg = '隊伍已鎖定出發！祝各位好運，特務！🎮';
+        if (voiceChannelId) {
+          followUpMsg += `\n🔊 專屬臨時戰術頻道已建立：<#${voiceChannelId}>`;
+        }
+        await interaction.followUp({ content: followUpMsg, ephemeral: false });
       } catch (err) {
         console.error('Error locking lobby:', err);
       }
