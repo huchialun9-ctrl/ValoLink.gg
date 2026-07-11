@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   const host = request.headers.get('host') || 'localhost:3000';
   const protocol = host.startsWith('localhost') ? 'http' : 'https';
-  const redirectUri = `${protocol}://${host}/api/auth/callback`;
+  const redirectUri = process.env.REDIRECT_URI || `${protocol}://${host}/api/auth/callback`;
 
   const clientId = process.env.CLIENT_ID;
   if (!clientId) {
