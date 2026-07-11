@@ -211,7 +211,8 @@ export default function Home() {
     <div className="container">
       {/* Premium Header */}
       <header className={styles.header}>
-        <div className={styles.logo}>
+        <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <img src="/logo.png" alt="ValoLink Logo" style={{ width: '24px', height: '24px', borderRadius: '4px' }} />
           <Link href="/">VALOLINK<span className={styles.logoDot}>.GG</span></Link>
         </div>
         <nav className={styles.nav}>
