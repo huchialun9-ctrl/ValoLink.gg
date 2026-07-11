@@ -22,7 +22,6 @@ export async function GET() {
       }
     });
 
-    // Map database structures to match the frontend expectations
     const formattedLobbies = lobbies.map(lobby => ({
       id: lobby.id,
       mode: lobby.gameMode,
@@ -39,5 +38,52 @@ export async function GET() {
   } catch (error) {
     console.error('Failed to fetch real-time lobbies from database:', error);
     return NextResponse.json({ error: 'Failed to fetch lobbies' }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { captainName, discordId, gameMode, minRank, description } = body;
+
+    if (!captainName || !discordId || !gameMode) {
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
+    }
+
+    // 1. Create/update captain user
+    await prisma.user.upsert({
+      where: { id: discordId },
+      update: { riotId: captainName, rank: minRank },
+      create: {
+        id: discordId,
+        riotId: captainName,
+        rank: minRank,
+        valoScore: 100
+      }
+    });
+
+    // 2. Create lobby
+    const lobby = await prisma.lobby.create({
+      data: {
+        captainId: discordId,
+        gameMode,
+        minRank,
+        description,
+        status: 'OPEN'
+      }
+    });
+
+    // 3. Add captain as lobby member
+    await prisma.lobbyMember.create({
+      data: {
+        lobbyId: lobby.id,
+        userId: discordId
+      }
+    });
+
+    return NextResponse.json({ success: true, lobbyId: lobby.id });
+  } catch (error) {
+    console.error('Failed to create lobby via web POST:', error);
+    return NextResponse.json({ error: 'Failed to create lobby' }, { status: 500 });
   }
 }
