@@ -4,70 +4,172 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from '../page.module.css';
 
-// Mock list of user's managed Discord servers
-const MOCK_GUILDS = [
-  { id: '1525378957694730300', name: '特戰英豪台灣官方社群' },
-  { id: '987654321098765432', name: 'Valorant Team TW' },
-];
+interface Session {
+  id: string;
+  username: string;
+  avatar: string;
+  riotId: string | null;
+  rank: string | null;
+  valoScore: number;
+}
+
+interface HistoricalSquad {
+  id: string;
+  gameMode: string;
+  minRank: string;
+  description: string;
+  status: string;
+  captain: string;
+  joinedAt: string;
+  memberCount: number;
+}
+
+interface Teammate {
+  id: string;
+  riotId: string;
+  valoScore: number;
+}
+
+interface CreditPoint {
+  date: string;
+  score: number;
+  reason: string;
+}
 
 export default function Dashboard() {
-  const [selectedGuild, setSelectedGuild] = useState(MOCK_GUILDS[0].id);
-  const [lobbyChannel, setLobbyChannel] = useState('');
-  const [voiceCategory, setVoiceCategory] = useState('');
-  const [autoVoice, setAutoVoice] = useState(true);
-  const [minScore, setMinScore] = useState(50);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loadingSession, setLoadingSession] = useState(true);
+  
+  // Dashboard Data
+  const [stats, setStats] = useState<any>(null);
+  const [squads, setSquads] = useState<HistoricalSquad[]>([]);
+  const [teammates, setTeammates] = useState<Teammate[]>([]);
+  const [history, setHistory] = useState<CreditPoint[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
 
-  // Fetch server configuration when active guild selection changes
+  // Parse cookie on client side
   useEffect(() => {
-    const fetchConfig = async () => {
-      setLoading(true);
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return decodeURIComponent(parts.pop()?.split(';').shift() || '');
+      return null;
+    };
+
+    const sessionCookie = getCookie('user_session');
+    if (sessionCookie) {
       try {
-        const res = await fetch(`/api/config?guildId=${selectedGuild}`);
+        setSession(JSON.parse(sessionCookie));
+      } catch (err) {
+        console.error('Failed to parse user session cookie:', err);
+      }
+    }
+    setLoadingSession(false);
+  }, []);
+
+  // Fetch stats from database once logged in
+  useEffect(() => {
+    if (!session) return;
+
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`/api/user/stats?userId=${session.id}`);
         if (res.ok) {
           const data = await res.json();
-          setLobbyChannel(data.lobbyChannelId || '');
-          setVoiceCategory(data.voiceCategoryId || '');
-          setAutoVoice(data.autoVoice ?? true);
-          setMinScore(data.minValoScore ?? 50);
+          setStats(data.stats);
+          setSquads(data.historicalSquads);
+          setTeammates(data.pastTeammates);
+          setHistory(data.creditHistory);
         }
       } catch (err) {
-        console.error('Failed to load server config:', err);
+        console.error('Failed to load user stats:', err);
       } finally {
-        setLoading(false);
+        setLoadingData(false);
       }
     };
+
+    fetchStats();
+  }, [session]);
+
+  // Render SVG Chart for ValoScore Trend
+  const renderTrendChart = () => {
+    if (history.length === 0) return null;
+
+    const width = 600;
+    const height = 150;
+    const padding = 20;
+
+    // Map scores to coordinates
+    const minScore = 30; // Lowest score limit
+    const maxScore = 100;
+    const xStep = (width - padding * 2) / Math.max(history.length - 1, 1);
     
-    fetchConfig();
-  }, [selectedGuild]);
+    const points = history.map((pt, i) => {
+      const x = padding + i * xStep;
+      // Invert Y coordinate since SVG (0,0) is top-left
+      const y = height - padding - ((pt.score - minScore) / (maxScore - minScore)) * (height - padding * 2);
+      return { x, y, ...pt };
+    });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage(null);
-    try {
-      const res = await fetch('/api/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          guildId: selectedGuild,
-          lobbyChannelId: lobbyChannel,
-          voiceCategoryId: voiceCategory,
-          autoVoice,
-          minValoScore: minScore,
-        }),
-      });
+    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
 
-      if (res.ok) {
-        setMessage({ text: '設定已成功儲存並同步至 Discord Bot！✅', type: 'success' });
-      } else {
-        throw new Error('Server responded with an error');
-      }
-    } catch (err) {
-      console.error(err);
-      setMessage({ text: '儲存失敗，請確認資料庫狀態與網路連線。❌', type: 'error' });
-    }
+    return (
+      <div style={{ position: 'relative', width: '100%', overflowX: 'auto', background: 'var(--bg-secondary)', padding: '16px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+        <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} style={{ display: 'block' }}>
+          {/* Grid lines */}
+          <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="var(--border-color)" strokeDasharray="4" />
+          <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="var(--border-color)" strokeDasharray="4" />
+          
+          {/* Main trend line */}
+          <path d={pathD} fill="none" stroke="var(--primary-blue)" strokeWidth="2.5" />
+          
+          {/* Points */}
+          {points.map((p, idx) => (
+            <g key={idx}>
+              <circle cx={p.x} cy={p.y} r="4" fill="var(--bg-primary)" stroke="var(--primary-blue)" strokeWidth="2" />
+              <text x={p.x} y={p.y - 8} fontSize="10" fill="var(--text-secondary)" textAnchor="middle" fontWeight="bold">
+                {p.score}
+              </text>
+            </g>
+          ))}
+        </svg>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+          <span>起始信用值</span>
+          <span>最新行為評估</span>
+        </div>
+      </div>
+    );
   };
+
+  if (loadingSession) {
+    return (
+      <div className="container" style={{ textAlign: 'center', padding: '100px 0', color: 'var(--text-secondary)' }}>
+        驗證憑證中...
+      </div>
+    );
+  }
+
+  // Gated Auth Screen
+  if (!session) {
+    return (
+      <div className="container" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', justifyContent: 'center', alignItems: 'center' }}>
+        <div className="glass-card" style={{ maxWidth: '450px', width: '100%', textAlign: 'center', padding: '40px' }}>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.5px' }}>
+            VALOLINK<span className={styles.logoDot}>.GG</span>
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '32px' }}>
+            請先使用 Discord 帳號登入，以同步您的伺服器列表、揪團紀錄與個人戰績面板。
+          </p>
+          <a href="/api/auth/login" className="btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', fontSize: '1rem', padding: '12px' }}>
+            💬 經由 Discord 登入 (OAuth2)
+          </a>
+          <div style={{ marginTop: '20px' }}>
+            <Link href="/" style={{ color: 'var(--primary-blue)', fontSize: '0.85rem' }}>返回組隊大廳</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
@@ -81,186 +183,138 @@ export default function Dashboard() {
           <Link href="/leaderboard" className={styles.navLink}>信用排行榜 (ValoScore)</Link>
           <Link href="/dashboard" className={`${styles.navLink} ${styles.navActive}`}>個人控制台 (Dashboard)</Link>
         </nav>
-        <button className="btn-secondary" style={{ padding: '8px 20px', fontSize: '0.9rem' }}>
-          管理員
-        </button>
+        <a href="/api/auth/logout" className="btn-secondary" style={{ padding: '8px 20px', fontSize: '0.9rem' }}>
+          登出 / LOGOUT
+        </a>
       </header>
 
-      {/* Hero Header */}
-      <section className={styles.hero} style={{ padding: '60px 0 30px' }}>
-        <h1 className={styles.heroTitle} style={{ fontSize: '3rem' }}>
-          Server <span className={styles.heroHighlight}>控制台</span>
-        </h1>
-        <p className={styles.heroSubtitle}>
-          設定與管理您伺服器中的 ValoLink.gg 機器人行為，活化語音頻道並開啟安全聯網防禦。
-        </p>
-      </section>
+      {loadingData || !stats ? (
+        <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-secondary)' }}>
+          同步您的特戰戰績與對局記錄中...
+        </div>
+      ) : (
+        <>
+          {/* User Hero Info Panel */}
+          <section className="glass-card" style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'center', marginBottom: '32px' }}>
+            <img 
+              src={session.avatar} 
+              alt={session.username} 
+              style={{ width: '72px', height: '72px', borderRadius: '50%', border: '2px solid var(--border-color)' }}
+            />
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <h2 style={{ fontSize: '1.8rem', fontWeight: 700, letterSpacing: '-0.5px' }}>{stats.riotId}</h2>
+                <span style={{ background: '#ddf4ff', color: 'var(--primary-blue)', border: '1px solid rgba(9,105,218,0.2)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
+                  {stats.rank}
+                </span>
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
+                Discord 帳號: @{session.username} (ID: {session.id})
+              </p>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: 600 }}>ValoScore 信用分</span>
+              <span style={{ fontSize: '2.5rem', fontWeight: '800', color: stats.valoScore >= 90 ? '#238636' : '#ff4655' }}>
+                {stats.valoScore} <span style={{ fontSize: '1rem', fontWeight: '500', color: 'var(--text-secondary)' }}>pts</span>
+              </span>
+            </div>
+          </section>
 
-      {/* Dashboard Panels */}
-      <section style={{ maxWidth: '800px', margin: '0 auto 80px' }}>
-        <div className="glass-card" style={{ padding: '40px' }}>
-          
-          {/* Guild Selector */}
-          <div style={{ marginBottom: '32px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)', fontWeight: '600', fontSize: '0.9rem', textTransform: 'uppercase' }}>
-              選擇要管理的 Discord 伺服器
-            </label>
-            <select
-              value={selectedGuild}
-              onChange={(e) => setSelectedGuild(e.target.value)}
-              style={{
-                width: '100%',
-                background: 'rgba(0, 0, 0, 0.4)',
-                border: '1px solid rgba(255, 70, 85, 0.2)',
-                color: '#fff',
-                padding: '12px 16px',
-                borderRadius: '4px',
-                fontSize: '1rem',
-                outline: 'none',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-primary)'
-              }}
-            >
-              {MOCK_GUILDS.map((g) => (
-                <option key={g.id} value={g.id} style={{ background: '#0f1923' }}>
-                  {g.name} ({g.id})
-                </option>
-              ))}
-            </select>
+          {/* KPI Row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+            <div className="glass-card" style={{ padding: '20px' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>🎮 累計組隊場次</span>
+              <h3 style={{ fontSize: '2rem', marginTop: '8px', fontWeight: 700 }}>{stats.squadCount} <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>場對局</span></h3>
+            </div>
+            <div className="glass-card" style={{ padding: '20px' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>🛡️ 隊友平均信用度</span>
+              <h3 style={{ fontSize: '2rem', marginTop: '8px', fontWeight: 700 }}>{stats.averageTeammateScore} <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>pts</span></h3>
+            </div>
+            <div className="glass-card" style={{ padding: '20px' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>📈 模擬勝率指標</span>
+              <h3 style={{ fontSize: '2rem', marginTop: '8px', fontWeight: 700 }}>{stats.winRate}% <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}>W/L</span></h3>
+            </div>
           </div>
 
-          <hr style={{ border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.05)', marginBottom: '32px' }} />
+          {/* Chart and History Section */}
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px', marginBottom: '80px', alignItems: 'start' }}>
+            
+            {/* Left Side: Chart & Matches */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              <div className="glass-card">
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>🛡️ ValoScore 信用分歷史走勢</h3>
+                {renderTrendChart()}
+              </div>
 
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)' }}>
-              正在載入伺服器配置設定...
+              <div className="glass-card">
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>歷史組隊紀錄</h3>
+                {squads.length === 0 ? (
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>目前尚未有任何歷史揪團對局資料。</div>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)', textAlign: 'left' }}>
+                          <th style={{ padding: '10px' }}>模式</th>
+                          <th style={{ padding: '10px' }}>隊長</th>
+                          <th style={{ padding: '10px' }}>備註</th>
+                          <th style={{ padding: '10px' }}>日期</th>
+                          <th style={{ padding: '10px', textAlign: 'right' }}>狀態</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {squads.map((s) => (
+                          <tr key={s.id} style={{ borderBottom: '1px solid #f1f2f4' }}>
+                            <td style={{ padding: '12px 10px', fontWeight: 'bold' }}>{s.gameMode}</td>
+                            <td style={{ padding: '12px 10px' }}>{s.captain}</td>
+                            <td style={{ padding: '12px 10px', color: 'var(--text-secondary)' }}>{s.description}</td>
+                            <td style={{ padding: '12px 10px' }}>{s.joinedAt}</td>
+                            <td style={{ padding: '12px 10px', textAlign: 'right' }}>
+                              <span style={{
+                                background: s.status === 'PLAYING' ? '#ddf4ff' : '#f1f2f4',
+                                color: s.status === 'PLAYING' ? 'var(--primary-blue)' : 'var(--text-secondary)',
+                                padding: '2px 8px',
+                                borderRadius: '12px',
+                                fontSize: '0.75rem',
+                                fontWeight: 600
+                              }}>
+                                {s.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              
-              {/* Option 1: Lobby Channel ID */}
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                  📢 揪團公告頻道 ID (Lobby Channel ID)
-                </label>
-                <input
-                  type="text"
-                  placeholder="例如: 123456789012345678"
-                  value={lobbyChannel}
-                  onChange={(e) => setLobbyChannel(e.target.value)}
-                  style={{
-                    width: '100%',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    padding: '12px 16px',
-                    borderRadius: '4px',
-                    color: '#fff',
-                    outline: 'none',
-                    fontFamily: 'var(--font-primary)'
-                  }}
-                />
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginTop: '6px' }}>
-                  設定 Bot 允許發起並顯示字卡的大廳頻道。
-                </span>
-              </div>
 
-              {/* Option 2: Voice Category ID */}
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                  🔊 語音分區類別 ID (Voice Category ID)
-                </label>
-                <input
-                  type="text"
-                  placeholder="例如: 987654321098765432"
-                  value={voiceCategory}
-                  onChange={(e) => setVoiceCategory(e.target.value)}
-                  style={{
-                    width: '100%',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    padding: '12px 16px',
-                    borderRadius: '4px',
-                    color: '#fff',
-                    outline: 'none',
-                    fontFamily: 'var(--font-primary)'
-                  }}
-                />
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginTop: '6px' }}>
-                  動態產生的語音頻道將在此類別目錄下建立。
-                </span>
-              </div>
-
-              {/* Option 3: Min ValoScore */}
-              <div style={{ marginBottom: '32px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
-                  🛡️ 准入信用分低標限制 (Min ValoScore)
-                </label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <input
-                    type="range"
-                    min="30"
-                    max="100"
-                    value={minScore}
-                    onChange={(e) => setMinScore(Number(e.target.value))}
-                    style={{ flex: 1, accentColor: 'var(--primary-red)' }}
-                  />
-                  <span style={{ width: '60px', textAlign: 'right', fontWeight: 'bold', color: 'var(--accent-cyan)' }}>
-                    {minScore} pts
-                  </span>
-                </div>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginTop: '6px' }}>
-                  信用積分低於此數值的玩家，將無法使用此伺服器內的任何組隊功能。
-                </span>
-              </div>
-
-              {/* Option 4: Auto Voice Switch */}
-              <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <label style={{ display: 'block', fontWeight: '600', marginBottom: '4px' }}>
-                    ⚡ 自動化語音控制模組
-                  </label>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    滿人或隊長按下開打時，自動在 Discord 中建立專屬臨時語音房。
-                  </span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={autoVoice}
-                  onChange={(e) => setAutoVoice(e.target.checked)}
-                  style={{
-                    width: '40px',
-                    height: '20px',
-                    accentColor: 'var(--primary-red)',
-                    cursor: 'pointer'
-                  }}
-                />
-              </div>
-
-              {/* Message Notification */}
-              {message && (
-                <div style={{
-                  padding: '12px 16px',
-                  borderRadius: '4px',
-                  marginBottom: '24px',
-                  fontSize: '0.9rem',
-                  background: message.type === 'success' ? 'rgba(78, 255, 138, 0.1)' : 'rgba(255, 70, 85, 0.1)',
-                  border: `1px solid ${message.type === 'success' ? '#4eff8a' : '#ff4655'}`,
-                  color: message.type === 'success' ? '#4eff8a' : '#ff4655'
-                }}>
-                  {message.text}
+            {/* Right Side: Teammates Met */}
+            <div className="glass-card">
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>🤝 合作過的隊友</h3>
+              {teammates.length === 0 ? (
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>目前尚未有任何共同對局玩家。</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {teammates.map((t) => (
+                    <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem', padding: '8px 0', borderBottom: '1px solid #f1f2f4' }}>
+                      <span style={{ fontWeight: '500' }}>{t.riotId}</span>
+                      <span style={{ 
+                        fontWeight: 'bold', 
+                        color: t.valoScore >= 90 ? '#238636' : '#ff4655' 
+                      }}>
+                        {t.valoScore} pts
+                      </span>
+                    </div>
+                  ))}
                 </div>
               )}
+            </div>
 
-              {/* Submit button */}
-              <button type="submit" className="btn-primary" style={{ width: '100%' }}>
-                儲存設定 (Save Config)
-              </button>
-
-            </form>
-          )}
-
-        </div>
-      </section>
+          </div>
+        </>
+      )}
     </div>
   );
 }

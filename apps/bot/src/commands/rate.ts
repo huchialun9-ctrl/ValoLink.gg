@@ -69,11 +69,21 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     if (newScore > 100) newScore = 100;
     if (newScore < 0) newScore = 0;
 
-    // Save back to DB
-    await prisma.user.update({
-      where: { id: targetId },
-      data: { valoScore: newScore }
-    });
+    // Save back to DB and log reputation change event
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: targetId },
+        data: { valoScore: newScore }
+      }),
+      prisma.reputationLog.create({
+        data: {
+          userId: targetId,
+          oldScore: currentScore,
+          newScore,
+          reason: desc
+        }
+      })
+    ]);
 
     const embed = new EmbedBuilder()
       .setColor('#4eff8a')

@@ -9,7 +9,7 @@
   "scripts": {
     "dev:bot": "npm run dev --workspace=apps/bot",
     "dev:web": "npm run dev --workspace=apps/web",
-    "build:bot": "npm run build --workspace=apps/bot",
-    "build:web": "npm run build --workspace=apps/web"
+    "build:bot": "npm run build --workspace=packages/db && npm run build --workspace=apps/bot",
+    "build:web": "npm run build --workspace=packages/db && npm run build --workspace=apps/web"
   }
 }

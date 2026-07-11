@@ -8,14 +8,15 @@ generator client {
 }
 
 model User {
-  id           String        @id // Discord User ID
-  riotId       String?       // Riot ID (e.g., User#TAG)
-  rank         String?       // Current game rank (e.g., Diamond 2, Immortal 1)
-  valoScore    Int           @default(100) // Reputation score
-  squadsJoined LobbyMember[]
-  squadsLed    Lobby[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id             String          @id // Discord User ID
+  riotId         String?         // Riot ID (e.g., User#TAG)
+  rank           String?         // Current game rank (e.g., Diamond 2, Immortal 1)
+  valoScore      Int             @default(100) // Reputation score
+  squadsJoined   LobbyMember[]
+  squadsLed      Lobby[]
+  reputationLogs ReputationLog[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }
 
 model Lobby {
@@ -55,4 +56,14 @@ model ServerConfig {
   minValoScore    Int     @default(50)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model ReputationLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  oldScore  Int
+  newScore  Int
+  reason    String?
+  createdAt DateTime @default(now())
 }

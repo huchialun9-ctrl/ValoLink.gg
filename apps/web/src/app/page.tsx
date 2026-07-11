@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import styles from './page.module.css';
 
 interface LobbyMember {
@@ -23,11 +24,23 @@ interface Lobby {
   membersList?: LobbyMember[];
 }
 
+interface Session {
+  id: string;
+  username: string;
+  avatar: string;
+  riotId: string | null;
+  rank: string | null;
+  valoScore: number;
+}
+
 export default function Home() {
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
   const [filterMode, setFilterMode] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Authentication State
+  const [session, setSession] = useState<Session | null>(null);
 
   // Form States
   const [showForm, setShowForm] = useState(false);
@@ -37,6 +50,29 @@ export default function Home() {
   const [formMinRank, setFormMinRank] = useState('Diamond');
   const [formDesc, setFormDesc] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Parse session cookie on client load
+  useEffect(() => {
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return decodeURIComponent(parts.pop()?.split(';').shift() || '');
+      return null;
+    };
+
+    const sessionCookie = getCookie('user_session');
+    if (sessionCookie) {
+      try {
+        const parsed = JSON.parse(sessionCookie);
+        setSession(parsed);
+        // Pre-fill form fields with session data if logged in
+        setFormRiotId(parsed.riotId || '');
+        setFormDiscordId(parsed.id || '');
+      } catch (err) {
+        console.error('Failed to parse user session cookie:', err);
+      }
+    }
+  }, []);
 
   // Fetch real-time active lobbies from the database via API endpoint
   const fetchLobbies = async () => {
@@ -89,8 +125,6 @@ export default function Home() {
       });
 
       if (res.ok) {
-        setFormRiotId('');
-        setFormDiscordId('');
         setFormDesc('');
         setShowForm(false);
         fetchLobbies();
@@ -105,6 +139,36 @@ export default function Home() {
     }
   };
 
+  const handleJoinLobby = async (lobbyId: string) => {
+    if (!session) {
+      // Redirect to Discord OAuth login
+      window.location.href = '/api/auth/login';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/lobbies/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lobbyId,
+          userId: session.id
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert('成功加入隊伍！已同步至 Discord 卡片！✅');
+        fetchLobbies();
+      } else {
+        alert(`無法加入房間: ${data.error}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('網路連線失敗，請重試。');
+    }
+  };
+
   const filteredLobbies = filterMode === 'All' 
     ? lobbies 
     : lobbies.filter(l => l.mode === filterMode);
@@ -114,16 +178,25 @@ export default function Home() {
       {/* Premium Header */}
       <header className={styles.header}>
         <div className={styles.logo}>
-          VALOLINK<span className={styles.logoDot}>.GG</span>
+          <Link href="/">VALOLINK<span className={styles.logoDot}>.GG</span></Link>
         </div>
         <nav className={styles.nav}>
-          <a href="#" className={`${styles.navLink} ${styles.navActive}`}>組隊大廳 (Lobby)</a>
-          <a href="/leaderboard" className={styles.navLink}>信用排行榜 (ValoScore)</a>
-          <a href="/dashboard" className={styles.navLink}>個人控制台 (Dashboard)</a>
+          <Link href="/" className={`${styles.navLink} ${styles.navActive}`}>組隊大廳 (Lobby)</Link>
+          <Link href="/leaderboard" className={styles.navLink}>信用排行榜 (ValoScore)</Link>
+          <Link href="/dashboard" className={styles.navLink}>個人控制台 (Dashboard)</Link>
         </nav>
-        <button className="btn-secondary" style={{ padding: '8px 20px', fontSize: '0.9rem' }}>
-          登入 / LOGIN
-        </button>
+        {session ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img src={session.avatar} alt={session.username} style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
+            <Link href="/dashboard" className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
+              主控台
+            </Link>
+          </div>
+        ) : (
+          <a href="/api/auth/login" className="btn-secondary" style={{ padding: '8px 20px', fontSize: '0.9rem' }}>
+            登入 / LOGIN
+          </a>
+        )}
       </header>
 
       {/* Hero Section */}
@@ -138,7 +211,7 @@ export default function Home() {
           <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
             {showForm ? '關閉建立面板' : '🌐 網頁直接開房間'}
           </button>
-          <button className="btn-secondary" onClick={fetchLobbies}>重新整理大廳</button>
+          <a href="/api/auth/login" className="btn-secondary">Discord 帳號登入</a>
         </div>
       </section>
 
@@ -268,55 +341,85 @@ export default function Home() {
         {/* Squad Cards Grid */}
         {filteredLobbies.length > 0 && (
           <div className={styles.grid}>
-            {filteredLobbies.map((lobby) => (
-              <div key={lobby.id} className="glass-card">
-                <div className={styles.cardHeader}>
-                  <span className={styles.modeBadge}>{lobby.mode}</span>
-                  <span className={styles.rankLimit}>🏆 {lobby.minRank} +</span>
-                </div>
-                <p className={styles.cardDesc}>{lobby.description}</p>
-                <div className={styles.cardFooter}>
-                  <div className={styles.captainInfo}>
-                    <div className={styles.avatarMock}>{lobby.captainAvatar}</div>
-                    <div>
-                      <div className={styles.captainName}>{lobby.captainName}</div>
-                      <div className={styles.captainScore}>信用分: {lobby.valoScore}</div>
-                    </div>
-                  </div>
-                  <div className={styles.memberCount}>
-                    人數: <span className={styles.memberCountActive}>{lobby.currentCount}</span> / {lobby.maxCount}
-                  </div>
-                </div>
+            {filteredLobbies.map((lobby) => {
+              const isUserInLobby = lobby.membersList?.some(m => m.id === session?.id) || false;
+              const isFull = lobby.currentCount >= lobby.maxCount;
 
-                {/* Real-time Voice Link Members Roster */}
-                {lobby.membersList && lobby.membersList.length > 0 && (
-                  <div style={{ marginTop: '16px', borderTop: '1px solid #f1f2f4', paddingTop: '12px' }}>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: '600' }}>隊員語音狀態 (Voice Status)</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {lobby.membersList.map((m) => (
-                        <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ 
-                              width: '8px', 
-                              height: '8px', 
-                              borderRadius: '50%', 
-                              background: m.inVoice ? '#238636' : '#cbd5e1',
-                              boxShadow: m.inVoice ? '0 0 8px #2ea44f' : 'none',
-                              display: 'inline-block'
-                            }} />
-                            <span style={{ color: m.inVoice ? '#238636' : 'var(--text-primary)', fontWeight: m.inVoice ? '600' : 'normal' }}>
-                              {m.riotId}
-                            </span>
-                            {m.inVoice && <span style={{ fontSize: '0.75rem', color: '#238636', fontWeight: '600' }}>(🎙️ 語音中)</span>}
-                          </span>
-                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>信用: {m.valoScore} pts</span>
-                        </div>
-                      ))}
+              return (
+                <div key={lobby.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    <div className={styles.cardHeader}>
+                      <span className={styles.modeBadge}>{lobby.mode}</span>
+                      <span className={styles.rankLimit}>🏆 {lobby.minRank} +</span>
                     </div>
+                    <p className={styles.cardDesc}>{lobby.description}</p>
                   </div>
-                )}
-              </div>
-            ))}
+                  
+                  <div>
+                    <div className={styles.cardFooter} style={{ marginBottom: '12px' }}>
+                      <div className={styles.captainInfo}>
+                        <div className={styles.avatarMock}>{lobby.captainAvatar}</div>
+                        <div>
+                          <div className={styles.captainName}>{lobby.captainName}</div>
+                          <div className={styles.captainScore}>信用分: {lobby.valoScore}</div>
+                        </div>
+                      </div>
+                      <div className={styles.memberCount}>
+                        人數: <span className={styles.memberCountActive}>{lobby.currentCount}</span> / {lobby.maxCount}
+                      </div>
+                    </div>
+
+                    {/* Join / Status Action Button */}
+                    <button 
+                      onClick={() => handleJoinLobby(lobby.id)}
+                      disabled={isUserInLobby || isFull}
+                      className={isUserInLobby ? "btn-secondary" : "btn-primary"}
+                      style={{ 
+                        width: '100%', 
+                        fontSize: '0.85rem', 
+                        padding: '8px', 
+                        justifyContent: 'center',
+                        backgroundColor: isUserInLobby ? '#f3f4f6' : (isFull ? '#e5e7eb' : 'var(--btn-green)'),
+                        color: isUserInLobby ? 'var(--text-secondary)' : '#ffffff',
+                        border: isUserInLobby ? '1px solid var(--border-color)' : 'none',
+                        cursor: (isUserInLobby || isFull) ? 'not-allowed' : 'pointer',
+                        marginBottom: '16px'
+                      }}
+                    >
+                      {isUserInLobby ? '✓ 已加入隊伍 (Joined)' : (isFull ? '人數已滿 (Full)' : '一鍵加入房間 (Join)')}
+                    </button>
+
+                    {/* Real-time Voice Link Members Roster */}
+                    {lobby.membersList && lobby.membersList.length > 0 && (
+                      <div style={{ borderTop: '1px solid #f1f2f4', paddingTop: '12px' }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: '600' }}>隊員語音狀態 (Voice Status)</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {lobby.membersList.map((m) => (
+                            <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ 
+                                  width: '8px', 
+                                  height: '8px', 
+                                  borderRadius: '50%', 
+                                  background: m.inVoice ? '#238636' : '#cbd5e1',
+                                  boxShadow: m.inVoice ? '0 0 8px #2ea44f' : 'none',
+                                  display: 'inline-block'
+                                }} />
+                                <span style={{ color: m.inVoice ? '#238636' : 'var(--text-primary)', fontWeight: m.inVoice ? '600' : 'normal' }}>
+                                  {m.riotId}
+                                </span>
+                                {m.inVoice && <span style={{ fontSize: '0.75rem', color: '#238636', fontWeight: '600' }}>(🎙️ 語音中)</span>}
+                              </span>
+                              <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>信用: {m.valoScore} pts</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </section>
