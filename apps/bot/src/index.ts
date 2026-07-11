@@ -43,26 +43,38 @@ client.on('interactionCreate', async (interaction: Interaction) => {
     const customId = interaction.customId;
     
     if (customId.startsWith('lobby_join_')) {
-      await interaction.deferUpdate();
       const lobbyId = customId.replace('lobby_join_', '');
       const userId = interaction.user.id;
 
       try {
-        // Ensure user exists
-        await prisma.user.upsert({
-          where: { id: userId },
-          update: {},
-          create: { id: userId }
-        });
-
         const lobby = await prisma.lobby.findUnique({
           where: { id: lobbyId },
           include: { members: true }
         });
 
         if (!lobby || lobby.status !== 'OPEN') {
-          return interaction.followUp({ content: '此隊伍已關閉或已開始！', ephemeral: true });
+          return interaction.reply({ content: '此隊伍已關閉或已開始！', ephemeral: true });
         }
+
+        // Reputation score gate check
+        const config = lobby.discordGuildId ? await prisma.serverConfig.findUnique({
+          where: { guildId: lobby.discordGuildId }
+        }) : null;
+        
+        const dbUser = await prisma.user.upsert({
+          where: { id: userId },
+          update: {},
+          create: { id: userId }
+        });
+
+        if (config && dbUser.valoScore < config.minValoScore) {
+          return interaction.reply({
+            content: `❌ 您的信用值為 **${dbUser.valoScore} pts**，低於本伺服器設定的最低門檻限制 (**${config.minValoScore} pts**)，無法加入隊伍！`,
+            ephemeral: true
+          });
+        }
+
+        await interaction.deferUpdate();
 
         const isAlreadyMember = lobby.members.some(m => m.userId === userId);
         if (isAlreadyMember) {
@@ -289,6 +301,34 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
               if (msg) {
                 await msg.edit(payload);
               }
+            }
+          }
+
+          // Dynamic voice channel empty cleanup & auto lobby closure
+          const oldChannel = oldState.channel;
+          if (oldChannel && oldChannel.members.size === 0) {
+            try {
+              await oldChannel.delete('ValoLink empty dynamic voice channel cleanup');
+              
+              // Close the lobby in DB
+              await prisma.lobby.update({
+                where: { id: lobby.id },
+                data: { status: 'CLOSED' }
+              });
+
+              // Re-update/disable buttons on the Embed since the lobby is closed
+              const closedPayload = await generateLobbyEmbed(lobby.id);
+              if (closedPayload && lobby.discordMessageId && lobby.discordChannelId) {
+                const channel = await client.channels.fetch(lobby.discordChannelId);
+                if (channel?.isTextBased()) {
+                  const msg = await channel.messages.fetch(lobby.discordMessageId);
+                  if (msg) {
+                    await msg.edit(closedPayload);
+                  }
+                }
+              }
+            } catch (cleanupErr) {
+              console.error('Failed to auto-cleanup empty voice channel:', cleanupErr);
             }
           }
         }
