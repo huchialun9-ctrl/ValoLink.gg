@@ -16,11 +16,15 @@ interface Lobby {
   mode: string;
   minRank: string;
   description: string;
+  captainId: string;
   captainName: string;
   captainAvatar: string;
   valoScore: number;
   currentCount: number;
   maxCount: number;
+  status: string;
+  voiceChannelId: string | null;
+  discordGuildId: string | null;
   membersList?: LobbyMember[];
 }
 
@@ -141,7 +145,6 @@ export default function Home() {
 
   const handleJoinLobby = async (lobbyId: string) => {
     if (!session) {
-      // Redirect to Discord OAuth login
       window.location.href = '/api/auth/login';
       return;
     }
@@ -166,6 +169,37 @@ export default function Home() {
     } catch (err) {
       console.error(err);
       alert('網路連線失敗，請重試。');
+    }
+  };
+
+  const handleCaptainAction = async (lobbyId: string, action: 'start' | 'close') => {
+    if (!session) return;
+
+    try {
+      const res = await fetch('/api/lobbies/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lobbyId,
+          action,
+          userId: session.id
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        if (action === 'start') {
+          alert('戰局已開始！臨時語音頻道已自動建立！');
+        } else {
+          alert('隊伍房間已解散！');
+        }
+        fetchLobbies();
+      } else {
+        alert(`操作失敗: ${data.error}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('連線伺服器失敗，請稍後重試。');
     }
   };
 
@@ -343,13 +377,16 @@ export default function Home() {
           <div className={styles.grid}>
             {filteredLobbies.map((lobby) => {
               const isUserInLobby = lobby.membersList?.some(m => m.id === session?.id) || false;
+              const isCaptain = lobby.captainId === session?.id;
               const isFull = lobby.currentCount >= lobby.maxCount;
 
               return (
-                <div key={lobby.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div key={lobby.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: lobby.status === 'PLAYING' ? '1px solid #28a745' : '1px solid var(--border-color)' }}>
                   <div>
                     <div className={styles.cardHeader}>
-                      <span className={styles.modeBadge}>{lobby.mode}</span>
+                      <span className={styles.modeBadge} style={{ backgroundColor: lobby.status === 'PLAYING' ? '#28a745' : 'var(--primary-blue)' }}>
+                        {lobby.mode} {lobby.status === 'PLAYING' && '• 進行中'}
+                      </span>
                       <span className={styles.rankLimit}>🏆 {lobby.minRank} +</span>
                     </div>
                     <p className={styles.cardDesc}>{lobby.description}</p>
@@ -369,25 +406,99 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Join / Status Action Button */}
-                    <button 
-                      onClick={() => handleJoinLobby(lobby.id)}
-                      disabled={isUserInLobby || isFull}
-                      className={isUserInLobby ? "btn-secondary" : "btn-primary"}
-                      style={{ 
-                        width: '100%', 
-                        fontSize: '0.85rem', 
-                        padding: '8px', 
-                        justifyContent: 'center',
-                        backgroundColor: isUserInLobby ? '#f3f4f6' : (isFull ? '#e5e7eb' : 'var(--btn-green)'),
-                        color: isUserInLobby ? 'var(--text-secondary)' : '#ffffff',
-                        border: isUserInLobby ? '1px solid var(--border-color)' : 'none',
-                        cursor: (isUserInLobby || isFull) ? 'not-allowed' : 'pointer',
-                        marginBottom: '16px'
-                      }}
-                    >
-                      {isUserInLobby ? '✓ 已加入隊伍 (Joined)' : (isFull ? '人數已滿 (Full)' : '一鍵加入房間 (Join)')}
-                    </button>
+                    {/* Actions Panel */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                      {/* Captain Controls */}
+                      {isCaptain && lobby.status === 'OPEN' && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                          <button 
+                            onClick={() => handleCaptainAction(lobby.id, 'start')}
+                            className="btn-primary" 
+                            style={{ padding: '8px', fontSize: '0.85rem', justifyContent: 'center', backgroundColor: '#28a745' }}
+                          >
+                            ⚔️ 出發開打
+                          </button>
+                          <button 
+                            onClick={() => handleCaptainAction(lobby.id, 'close')}
+                            className="btn-secondary" 
+                            style={{ padding: '8px', fontSize: '0.85rem', justifyContent: 'center' }}
+                          >
+                            🗑️ 解散房間
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Captain Controls (when already Playing) */}
+                      {isCaptain && lobby.status === 'PLAYING' && (
+                        <button 
+                          onClick={() => handleCaptainAction(lobby.id, 'close')}
+                          className="btn-secondary" 
+                          style={{ padding: '8px', fontSize: '0.85rem', justifyContent: 'center', width: '100%' }}
+                        >
+                          🗑️ 結束並關閉房間
+                        </button>
+                      )}
+
+                      {/* Member Voice Room Access Link */}
+                      {isUserInLobby && lobby.status === 'PLAYING' && lobby.voiceChannelId && (
+                        <a 
+                          href={`https://discord.com/channels/${lobby.discordGuildId}/${lobby.voiceChannelId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-primary"
+                          style={{ 
+                            padding: '10px', 
+                            fontSize: '0.85rem', 
+                            justifyContent: 'center', 
+                            backgroundColor: '#28a745',
+                            boxShadow: '0 0 10px rgba(40, 167, 69, 0.4)',
+                            textAlign: 'center',
+                            display: 'block'
+                          }}
+                        >
+                          🎙️ 進入 Discord 戰術語音房
+                        </a>
+                      )}
+
+                      {/* Standard Join Button (only shown for open lobbies when not joined) */}
+                      {!isCaptain && lobby.status === 'OPEN' && (
+                        <button 
+                          onClick={() => handleJoinLobby(lobby.id)}
+                          disabled={isUserInLobby || isFull}
+                          className={isUserInLobby ? "btn-secondary" : "btn-primary"}
+                          style={{ 
+                            width: '100%', 
+                            fontSize: '0.85rem', 
+                            padding: '8px', 
+                            justifyContent: 'center',
+                            backgroundColor: isUserInLobby ? '#f3f4f6' : (isFull ? '#e5e7eb' : 'var(--btn-green)'),
+                            color: isUserInLobby ? 'var(--text-secondary)' : '#ffffff',
+                            border: isUserInLobby ? '1px solid var(--border-color)' : 'none',
+                            cursor: (isUserInLobby || isFull) ? 'not-allowed' : 'pointer'
+                          }}
+                        >
+                          {isUserInLobby ? '✓ 已加入隊伍 (Joined)' : (isFull ? '人數已滿 (Full)' : '一鍵加入房間 (Join)')}
+                        </button>
+                      )}
+
+                      {/* Match in Progress Indicator (for non-members) */}
+                      {!isCaptain && !isUserInLobby && lobby.status === 'PLAYING' && (
+                        <button 
+                          disabled 
+                          className="btn-secondary"
+                          style={{ 
+                            width: '100%', 
+                            fontSize: '0.85rem', 
+                            padding: '8px', 
+                            justifyContent: 'center',
+                            cursor: 'not-allowed',
+                            backgroundColor: '#f3f4f6'
+                          }}
+                        >
+                          ⚔️ 戰局進行中 (Playing)
+                        </button>
+                      )}
+                    </div>
 
                     {/* Real-time Voice Link Members Roster */}
                     {lobby.membersList && lobby.membersList.length > 0 && (
