@@ -4,12 +4,13 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
-import { IconGlobe, IconTrophy, IconUsers, IconShield, IconSettings, IconUser } from '@/components/Icons';
+import { IconGlobe, IconTrophy, IconUsers, IconShield, IconSettings, IconUser, IconHelpCircle } from '@/components/Icons';
 
 const navItems = [
   { href: '/', label: '組隊大廳', icon: <IconGlobe /> },
   { href: '/leaderboard', label: '信用排行榜', icon: <IconTrophy /> },
   { href: '/dashboard', label: '個人控制台', icon: <IconUsers /> },
+  { href: '/help', label: '使用說明', icon: <IconHelpCircle /> },
   { href: '/admin', label: '管理員面板', icon: <IconShield /> },
 ];
 
