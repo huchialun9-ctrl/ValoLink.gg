@@ -9,6 +9,8 @@ export interface Session {
   riotId: string | null;
   rank: string | null;
   valoScore: number;
+  email?: string;
+  bio?: string;
 }
 
 interface AuthContextType {
@@ -35,13 +37,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     };
 
-    const cookie = getCookie('user_session');
-    if (cookie) {
+    const userSession = getCookie('user_session');
+    if (userSession) {
       try {
-        setSession(JSON.parse(cookie));
+        setSession(JSON.parse(userSession));
+        setLoading(false);
+        return;
       } catch {}
     }
-    setLoading(false);
+
+    fetch('/api/auth/session')
+      .then(r => r.json())
+      .then(data => {
+        if (data.user) {
+          setSession({
+            id: data.user.id,
+            username: data.user.displayName || data.user.email?.split('@')[0] || 'User',
+            avatar: data.user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.displayName || 'U')}&background=7aa2f7&color=fff&size=64`,
+            riotId: data.user.riotId || null,
+            rank: data.user.rank || null,
+            valoScore: data.user.valoScore || 100,
+            email: data.user.email,
+            bio: data.user.bio,
+          });
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const updateSession = (fields: Partial<Session>) => {

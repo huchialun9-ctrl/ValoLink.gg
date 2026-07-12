@@ -1,19 +1,37 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@valolink/db';
+import { jwtVerify } from 'jose';
 
 export const dynamic = 'force-dynamic';
 
-// Verify the user is a Discord server administrator
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'valolink-default-secret-change-me');
+
 async function verifyAdmin(request: Request): Promise<{ userId: string } | null> {
   const cookie = request.headers.get('cookie') || '';
-  const match = cookie.match(/user_session=([^;]+)/);
-  if (!match) return null;
+
+  // Try JWT auth_token first
+  const jwtMatch = cookie.match(/auth_token=([^;]+)/);
+  if (jwtMatch) {
+    try {
+      const { payload } = await jwtVerify(jwtMatch[1], JWT_SECRET);
+      const user = await prisma.user.findUnique({ where: { id: payload.userId as string } });
+      if (user?.isAdmin) return { userId: user.id };
+    } catch {}
+  }
+
+  // Try user_session (Discord auth)
+  const sessionMatch = cookie.match(/user_session=([^;]+)/);
+  if (!sessionMatch) return null;
 
   try {
-    const session = JSON.parse(decodeURIComponent(match[1]));
+    const session = JSON.parse(decodeURIComponent(sessionMatch[1]));
     if (!session?.id) return null;
 
-    // Check if user has ADMINISTRATOR permission in any configured guild
+    // First check DB isAdmin flag
+    const user = await prisma.user.findUnique({ where: { id: session.id } });
+    if (user?.isAdmin) return { userId: session.id };
+
+    // Fallback: check Discord guild admin via bot API
     const token = process.env.DISCORD_TOKEN;
     if (!token) return null;
 
@@ -25,7 +43,6 @@ async function verifyAdmin(request: Request): Promise<{ userId: string } | null>
       );
       if (res.ok) {
         const member = await res.json();
-        // Check ADMINISTRATOR flag (bit 3 = 0x8)
         const guildRes = await fetch(
           `https://discord.com/api/v10/guilds/${config.guildId}`,
           { headers: { Authorization: `Bot ${token}` } }
@@ -34,7 +51,6 @@ async function verifyAdmin(request: Request): Promise<{ userId: string } | null>
           const guild = await guildRes.json();
           if (guild.owner_id === session.id) return { userId: session.id };
 
-          // Check roles for ADMINISTRATOR
           const adminRoles = guild.roles?.filter((r: any) => (BigInt(r.permissions) & BigInt(0x8)) !== BigInt(0));
           const memberRoleIds = member.roles || [];
           const isAdmin = adminRoles?.some((r: any) => memberRoleIds.includes(r.id));

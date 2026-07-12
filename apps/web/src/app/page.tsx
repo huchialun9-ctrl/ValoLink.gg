@@ -10,8 +10,10 @@ import { IconGlobe, IconAlertTriangle, IconTrophy, IconSwords, IconTrash2, IconC
 
 interface LobbyMember {
   id: string;
-  riotId: string;
+  name: string;
+  avatar?: string | null;
   inVoice: boolean;
+  isMuted?: boolean;
   valoScore: number;
 }
 
@@ -27,7 +29,6 @@ interface Lobby {
   currentCount: number;
   maxCount: number;
   status: string;
-  voiceChannelId: string | null;
   discordGuildId: string | null;
   membersList?: LobbyMember[];
 }
@@ -117,6 +118,7 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           captainName: formRiotId,
+          userId: session?.id,
           gameMode: formGameMode,
           minRank: formMinRank,
           description: formDesc,
@@ -217,7 +219,7 @@ export default function Home() {
           <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
             {showForm ? '關閉建立面板' : <><IconGlobe /> 開房間</>}
           </button>
-          <a href="/api/auth/login" className="btn-secondary">登入 / LOGIN</a>
+          <a href="/auth" className="btn-secondary">註冊 / 登入</a>
         </div>
       </section>
 
@@ -412,7 +414,7 @@ export default function Home() {
 
                       {/* Web Voice Chat (available to all lobby members) */}
                       {(isUserInLobby || isCaptain) && (
-                        <VoiceRoom lobbyId={lobby.id} session={session} />
+                        <VoiceRoom lobbyId={lobby.id} session={session} isCaptain={isCaptain} members={lobby.membersList || []} />
                       )}
 
 
@@ -474,7 +476,7 @@ export default function Home() {
                                   display: 'inline-block'
                                 }} />
                                 <span style={{ color: m.inVoice ? '#238636' : 'var(--text-primary)', fontWeight: m.inVoice ? '600' : 'normal' }}>
-                                  {m.riotId}
+                                  {m.name || m.id}
                                 </span>
                                 {m.inVoice && <span style={{ fontSize: '0.75rem', color: '#238636', fontWeight: '600' }}>(<IconMic /> 語音中)</span>}
                               </span>

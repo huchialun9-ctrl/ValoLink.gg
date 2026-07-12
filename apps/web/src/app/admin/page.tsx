@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from '../page.module.css';
-import { IconCheck, IconXCircle, IconShield, IconAlertTriangle, IconClipboardList, IconWrench, IconSave, IconSettings, IconZap, IconMegaphone } from '@/components/Icons';
+import { IconCheck, IconXCircle, IconShield, IconAlertTriangle, IconClipboardList, IconWrench, IconSave, IconSettings, IconZap, IconMegaphone, IconPlusCircle, IconExternalLink } from '@/components/Icons';
 
 interface Config {
   guildId: string;
@@ -92,12 +92,58 @@ export default function AdminPage() {
   );
 
   if (unauthorized) return (
-    <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
+    <div className="container" style={{ padding: '100px 0', textAlign: 'center', maxWidth: '500px' }}>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '12px', color: 'var(--accent-red)' }}><IconXCircle /> 權限不足</h2>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
-        您必須是管理員才能存取此頁面
+      <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: 1.6 }}>
+        要存取管理員面板，您需要先將 ValoLink Bot 邀請至您擁有管理員權限的 Discord 伺服器，並通過管理員驗證。
       </p>
-      <Link href="/" className="btn-secondary">返回大廳</Link>
+
+      {/* Step 1: Invite Bot */}
+      <div style={{
+        background: 'rgba(122,162,247,0.06)', border: '1px solid rgba(122,162,247,0.2)',
+        borderRadius: '10px', padding: '20px', marginBottom: '16px', textAlign: 'left',
+      }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <IconPlusCircle /> 第一步：邀請機器人
+        </h3>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+          點擊下方按鈕將 ValoLink Bot 邀請至您的 Discord 伺服器（需要管理員權限）。
+        </p>
+        <button
+          className="btn-primary"
+          style={{ width: '100%', justifyContent: 'center' }}
+          onClick={async () => {
+            const res = await fetch('/api/auth/discord/invite');
+            const data = await res.json();
+            if (data.url) window.open(data.url, '_blank');
+            else alert('Discord Client ID 未設定');
+          }}
+        >
+          <IconExternalLink /> 邀請機器人至伺服器
+        </button>
+      </div>
+
+      {/* Step 2: Verify Admin */}
+      <div style={{
+        background: 'rgba(158,206,106,0.06)', border: '1px solid rgba(158,206,106,0.2)',
+        borderRadius: '10px', padding: '20px', marginBottom: '16px', textAlign: 'left',
+      }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <IconShield /> 第二步：驗證管理員身份
+        </h3>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+          透過 Discord 授權驗證您的管理員身份。我們只會檢查您擁有的伺服器列表，不會記錄任何個人資訊。
+        </p>
+        <a
+          href={`https://discord.com/api/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID || ''}&redirect_uri=${encodeURIComponent(typeof window !== 'undefined' ? `${window.location.origin}/api/admin/callback` : '')}&response_type=code&scope=identify%20guilds`}
+          className="btn-primary"
+          style={{ width: '100%', justifyContent: 'center', display: 'flex', textDecoration: 'none' }}
+        >
+          <IconShield /> 驗證管理員身份
+        </a>
+      </div>
+
+      <Link href="/" className="btn-secondary" style={{ display: 'inline-flex', marginTop: '8px' }}>返回大廳</Link>
     </div>
   );
 
@@ -109,6 +155,21 @@ export default function AdminPage() {
       <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
         管理 ValoLink.gg 機器人設定、信用門檻與可疑用戶
       </p>
+
+      {/* Bot invite button */}
+      <div style={{ marginBottom: '24px' }}>
+        <button
+          className="btn-primary"
+          onClick={async () => {
+            const res = await fetch('/api/auth/discord/invite');
+            const data = await res.json();
+            if (data.url) window.open(data.url, '_blank');
+          }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+        >
+          <IconPlusCircle /> 邀請機器人至伺服器
+        </button>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'start' }}>
 

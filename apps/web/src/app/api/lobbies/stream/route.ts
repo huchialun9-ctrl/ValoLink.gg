@@ -48,17 +48,17 @@ export async function GET(request: Request) {
           minRank: lobby.minRank || 'Unranked',
           description: lobby.description || '',
           captainId: lobby.captainId,
-          captainName: lobby.captain.riotId || `Discord:${lobby.captainId}`,
+          captainName: lobby.captain.displayName || lobby.captain.riotId || lobby.captainId,
           valoScore: lobby.captain.valoScore,
           currentCount: lobby.members.length,
           maxCount: 5,
           status: lobby.status,
-          voiceChannelId: lobby.voiceChannelId,
-          discordGuildId: lobby.discordGuildId,
           membersList: lobby.members.map(m => ({
             id: m.userId,
-            riotId: m.user.riotId || `Discord:${m.userId}`,
+            name: m.user.displayName || m.user.riotId || m.userId,
+            avatar: m.user.avatar,
             inVoice: m.inVoice,
+            isMuted: m.isMuted,
             valoScore: m.user.valoScore
           }))
         }));
@@ -86,22 +86,22 @@ export async function GET(request: Request) {
             minRank: lobby.minRank || 'Unranked',
             description: lobby.description || '',
             captainId: lobby.captainId,
-            captainName: lobby.captain.riotId || `Discord:${lobby.captainId}`,
+            captainName: lobby.captain.displayName || lobby.captain.riotId || lobby.captainId,
             valoScore: lobby.captain.valoScore,
             currentCount: lobby.members.length,
             maxCount: 5,
-            status: lobby.status,
-            voiceChannelId: lobby.voiceChannelId,
-            discordGuildId: lobby.discordGuildId,
-            membersList: lobby.members.map(m => ({
-              id: m.userId,
-              riotId: m.user.riotId || `Discord:${m.userId}`,
-              inVoice: m.inVoice,
-              valoScore: m.user.valoScore
-            }))
-          }));
+              status: lobby.status,
+              membersList: lobby.members.map(m => ({
+                id: m.userId,
+                name: m.user.displayName || m.user.riotId || m.userId,
+                avatar: m.user.avatar,
+                inVoice: m.inVoice,
+                isMuted: m.isMuted,
+                valoScore: m.user.valoScore
+              }))
+            }));
 
-          send({ type: 'update', lobbies: formatted });
+            send({ type: 'update', lobbies: formatted });
         } catch {
           send({ type: 'ping' }); // keep-alive
         }

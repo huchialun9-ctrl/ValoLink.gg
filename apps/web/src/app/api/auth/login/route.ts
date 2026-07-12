@@ -1,18 +1,56 @@
 import { NextResponse } from 'next/server';
+import { prisma } from '@valolink/db';
+import bcrypt from 'bcryptjs';
+import { SignJWT } from 'jose';
 
-export const dynamic = 'force-dynamic';
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'valolink-default-secret-change-me');
 
-export async function GET(request: Request) {
-  const host = request.headers.get('host') || 'localhost:3000';
-  const protocol = host.startsWith('localhost') ? 'http' : 'https';
-  const redirectUri = process.env.REDIRECT_URI || `${protocol}://${host}/api/auth/callback`;
+export async function POST(req: Request) {
+  try {
+    const { email, password } = await req.json();
 
-  const clientId = process.env.CLIENT_ID;
-  if (!clientId) {
-    return NextResponse.json({ error: 'CLIENT_ID environment variable is missing' }, { status: 500 });
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Email 與密碼為必填' }, { status: 400 });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !user.passwordHash) {
+      return NextResponse.json({ error: 'Email 或密碼錯誤' }, { status: 401 });
+    }
+
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) {
+      return NextResponse.json({ error: 'Email 或密碼錯誤' }, { status: 401 });
+    }
+
+    const token = await new SignJWT({ userId: user.id, email: user.email })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setExpirationTime('7d')
+      .sign(JWT_SECRET);
+
+    const response = NextResponse.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.displayName,
+        riotId: user.riotId,
+        rank: user.rank,
+        valoScore: user.valoScore,
+        bio: user.bio,
+      },
+      token,
+    });
+
+    response.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
+    });
+
+    return response;
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || '登入失敗' }, { status: 500 });
   }
-
-  const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify`;
-
-  return NextResponse.redirect(discordAuthUrl);
 }

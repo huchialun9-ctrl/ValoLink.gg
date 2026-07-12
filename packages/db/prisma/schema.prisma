@@ -9,10 +9,16 @@ generator client {
 
 model User {
   id             String          @id
+  email          String?         @unique
+  passwordHash   String?
+  displayName    String?
+  avatar         String?
+  bio            String?
   riotId         String?         @unique
   rank           String?
   valoScore      Int             @default(100)
   isSuspicious   Boolean         @default(false)
+  isAdmin        Boolean         @default(false)
   squadsJoined   LobbyMember[]
   squadsLed      Lobby[]
   reputationLogs ReputationLog[]
@@ -24,17 +30,17 @@ model User {
 
 model Lobby {
   id               String        @id @default(uuid())
-  discordMessageId String?       @unique // Discord message ID of the lobby embed
-  discordChannelId String?
-  discordGuildId   String?
-  voiceChannelId   String?       // Temporary tactical voice channel ID
   captainId        String
   captain          User          @relation(fields: [captainId], references: [id])
-  gameMode         String        // e.g., Competitive, Unrated, Swiftplay
+  gameMode         String
   minRank          String?
   maxRank          String?
   description      String?
-  status           String        @default("OPEN") // OPEN, FULL, PLAYING, CLOSED
+  status           String        @default("OPEN")
+  voiceChannelId   String?
+  discordChannelId String?
+  discordMessageId String?
+  discordGuildId   String?
   members          LobbyMember[]
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
@@ -46,15 +52,16 @@ model LobbyMember {
   userId   String
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   inVoice  Boolean  @default(false)
+  isMuted  Boolean  @default(false)
   joinedAt DateTime @default(now())
 
   @@id([lobbyId, userId])
 }
 
 model ServerConfig {
-  guildId         String  @id // Discord Guild (Server) ID
-  lobbyChannelId  String? // Channel where the bot is authorized to post squads
-  voiceCategoryId String? // Category ID under which dynamic voice channels are created
+  guildId         String  @id
+  lobbyChannelId  String?
+  voiceCategoryId String?
   autoVoice       Boolean @default(true)
   minValoScore    Int     @default(50)
   createdAt       DateTime @default(now())
@@ -77,10 +84,10 @@ model RatingRecord {
   rater      User     @relation("RaterRecords", fields: [raterId], references: [id], onDelete: Cascade)
   targetId   String
   target     User     @relation("TargetRecords", fields: [targetId], references: [id], onDelete: Cascade)
-  ratingType String   // 'good' | 'toxic' | 'afk'
+  ratingType String
   suspicious Boolean  @default(false)
   createdAt  DateTime @default(now())
 
-  @@unique([raterId, targetId, ratingType]) // prevent duplicate type ratings
+  @@unique([raterId, targetId, ratingType])
   @@index([raterId, targetId])
 }

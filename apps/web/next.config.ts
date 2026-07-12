@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
   },
   env: {
     NEXT_PUBLIC_LIVEKIT_URL: process.env.NEXT_PUBLIC_LIVEKIT_URL || "",
+    NEXT_PUBLIC_CLIENT_ID: process.env.CLIENT_ID || "",
   },
 };
 
