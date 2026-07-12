@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@valolink/db';
-import bcrypt from 'bcryptjs';
+import { hashPassword } from '@/lib/password';
 import { SignJWT } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'valolink-default-secret-change-me');
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: '此 Email 已經註冊過' }, { status: 409 });
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    const passwordHash = hashPassword(password);
     const id = crypto.randomUUID();
 
     const user = await prisma.user.create({

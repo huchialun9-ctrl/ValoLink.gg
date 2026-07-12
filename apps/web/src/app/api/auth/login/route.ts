@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@valolink/db';
-import bcrypt from 'bcryptjs';
+import { verifyPassword } from '@/lib/password';
 import { SignJWT } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'valolink-default-secret-change-me');
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Email 或密碼錯誤' }, { status: 401 });
     }
 
-    const valid = await bcrypt.compare(password, user.passwordHash);
+    const valid = verifyPassword(password, user.passwordHash);
     if (!valid) {
       return NextResponse.json({ error: 'Email 或密碼錯誤' }, { status: 401 });
     }

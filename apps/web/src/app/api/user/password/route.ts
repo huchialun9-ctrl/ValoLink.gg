@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@valolink/db';
-import bcrypt from 'bcryptjs';
+import { hashPassword, verifyPassword } from '@/lib/password';
 import { jwtVerify } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'valolink-default-secret-change-me');
@@ -25,12 +25,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '此帳號未設定密碼（可能使用 Discord 登入）' }, { status: 400 });
     }
 
-    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!valid) {
+    if (!verifyPassword(currentPassword, user.passwordHash)) {
       return NextResponse.json({ error: '目前密碼錯誤' }, { status: 401 });
     }
 
-    const passwordHash = await bcrypt.hash(newPassword, 12);
+    const passwordHash = hashPassword(newPassword);
     await prisma.user.update({
       where: { id: user.id },
       data: { passwordHash },
