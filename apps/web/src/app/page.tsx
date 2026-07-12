@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from './page.module.css';
+import VoiceRoom from './components/VoiceRoom';
 
 interface LobbyMember {
   id: string;
@@ -45,6 +46,9 @@ export default function Home() {
 
   // Authentication State
   const [session, setSession] = useState<Session | null>(null);
+
+  // Voice Room State
+  const [activeVoiceRoom, setActiveVoiceRoom] = useState<string | null>(null);
 
   // Form States
   const [showForm, setShowForm] = useState(false);
@@ -469,25 +473,31 @@ export default function Home() {
                         </button>
                       )}
 
-                      {/* Member Voice Room Access Link */}
-                      {isUserInLobby && lobby.status === 'PLAYING' && lobby.voiceChannelId && (
-                        <a 
-                          href={`https://discord.com/channels/${lobby.discordGuildId}/${lobby.voiceChannelId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn-primary"
-                          style={{ 
-                            padding: '10px', 
-                            fontSize: '0.85rem', 
-                            justifyContent: 'center', 
-                            backgroundColor: '#28a745',
-                            boxShadow: '0 0 10px rgba(40, 167, 69, 0.4)',
-                            textAlign: 'center',
-                            display: 'block'
-                          }}
-                        >
-                          🎙️ 進入 Discord 戰術語音房
-                        </a>
+                      {/* Member Voice Room - LiveKit */}
+                      {isUserInLobby && lobby.status === 'PLAYING' && (
+                        activeVoiceRoom === lobby.id ? (
+                          <VoiceRoom
+                            roomName={lobby.id}
+                            identity={session!.id}
+                            displayName={session!.username}
+                            onLeave={() => setActiveVoiceRoom(null)}
+                          />
+                        ) : (
+                          <button
+                            onClick={() => setActiveVoiceRoom(lobby.id)}
+                            className="btn-primary"
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              fontSize: '0.85rem',
+                              justifyContent: 'center',
+                              backgroundColor: '#28a745',
+                              boxShadow: '0 0 10px rgba(40, 167, 69, 0.4)',
+                            }}
+                          >
+                            🎙️ 加入語音房間
+                          </button>
+                        )
                       )}
 
                       {/* Standard Join Button (only shown for open lobbies when not joined) */}
