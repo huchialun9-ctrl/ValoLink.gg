@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from './page.module.css';
 import VoiceRoom from './components/VoiceRoom';
+import NavHeader from '@/components/NavHeader';
+import { useAuth } from '@/lib/AuthContext';
 import { IconGlobe, IconAlertTriangle, IconTrophy, IconSwords, IconTrash2, IconCheck, IconMic } from '@/components/Icons';
 
 interface LobbyMember {
@@ -30,22 +32,12 @@ interface Lobby {
   membersList?: LobbyMember[];
 }
 
-interface Session {
-  id: string;
-  username: string;
-  avatar: string;
-  riotId: string | null;
-  rank: string | null;
-  valoScore: number;
-}
-
 export default function Home() {
+  const { session } = useAuth();
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
   const [filterMode, setFilterMode] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const [session, setSession] = useState<Session | null>(null);
 
   const [showForm, setShowForm] = useState(false);
   const [formRiotId, setFormRiotId] = useState('');
@@ -56,25 +48,11 @@ export default function Home() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const getCookie = (name: string) => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return decodeURIComponent(parts.pop()?.split(';').shift() || '');
-      return null;
-    };
-
-    const sessionCookie = getCookie('user_session');
-    if (sessionCookie) {
-      try {
-        const parsed = JSON.parse(sessionCookie);
-        setSession(parsed);
-        setFormRiotId(parsed.riotId || '');
-        setFormDiscordId(parsed.id || '');
-      } catch (err) {
-        console.error('Failed to parse user session cookie:', err);
-      }
+    if (session) {
+      setFormRiotId(session.riotId || '');
+      setFormDiscordId(session.id || '');
     }
-  }, []);
+  }, [session]);
 
   const fetchLobbies = async () => {
     try {
@@ -233,30 +211,7 @@ export default function Home() {
 
   return (
     <div className="container">
-      {/* Premium Header */}
-      <header className={styles.header}>
-        <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/logo.png" alt="ValoLink Logo" style={{ width: '24px', height: '24px', borderRadius: '4px' }} />
-          <Link href="/">VALOLINK<span className={styles.logoDot}>.GG</span></Link>
-        </div>
-        <nav className={styles.nav}>
-          <Link href="/" className={`${styles.navLink} ${styles.navActive}`}>組隊大廳 (Lobby)</Link>
-          <Link href="/leaderboard" className={styles.navLink}>信用排行榜 (ValoScore)</Link>
-          <Link href="/dashboard" className={styles.navLink}>個人控制台 (Dashboard)</Link>
-        </nav>
-        {session ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img src={session.avatar} alt={session.username} style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
-            <Link href="/dashboard" className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
-              主控台
-            </Link>
-          </div>
-        ) : (
-          <a href="/api/auth/login" className="btn-secondary" style={{ padding: '8px 20px', fontSize: '0.9rem' }}>
-            登入 / LOGIN
-          </a>
-        )}
-      </header>
+      <NavHeader />
 
       {/* Hero Section */}
       <section className={styles.hero}>

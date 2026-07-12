@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { use } from 'react';
 import styles from '../../page.module.css';
+import NavHeader from '@/components/NavHeader';
 import { IconAlertTriangle, IconBarChart3, IconThumbsUp, IconThumbsDown, IconMoon, IconTrendingUp, IconGamepad2, IconCircle } from '@/components/Icons';
 
 interface PlayerProfile {
@@ -99,18 +100,7 @@ export default function PlayerPage({ params }: { params: Promise<{ discordId: st
 
   return (
     <div className="container" style={{ paddingTop: '32px', paddingBottom: '80px' }}>
-      {/* Header */}
-      <header className={styles.header}>
-        <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/logo.png" alt="ValoLink" style={{ width: '24px', height: '24px', borderRadius: '4px' }} />
-          <Link href="/">VALOLINK<span className={styles.logoDot}>.GG</span></Link>
-        </div>
-        <nav className={styles.nav}>
-          <Link href="/" className={styles.navLink}>組隊大廳</Link>
-          <Link href="/leaderboard" className={styles.navLink}>信用排行榜</Link>
-          <Link href="/dashboard" className={styles.navLink}>個人控制台</Link>
-        </nav>
-      </header>
+      <NavHeader hideAuth />
 
       {/* Hero Card */}
       <div className="glass-card animate-fade-in" style={{ display: 'flex', gap: '32px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '24px' }}>

@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VALOLINK.GG
 
-## Getting Started
+> 特戰英豪找人平台 — 用真實戰績說話，用信用分篩隊友。
 
-First, run the development server:
+## 這專案在幹嘛
+
+ValoLink.gg 是一個跨 Discord 伺服器的組隊配對平台。主要做的事：
+
+- **開房揪團** — 在網頁上直接開隊伍，設定模式、牌位限制、備註
+- **信用評分** — 打完可以互評（友善 / 嘴砲 / 掛網），分數會影響之後能跟誰組隊
+- **Riot ID 綁定** — 綁定後自動拉牌位跟戰績，不用手key
+- **語音聊天** — 用 LiveKit 做的，進房可以直接講話，不用跳 Discord
+- **即時大廳** — Server-Sent Events 推送，有人開/關房畫面自動更新
+- **管理面板** — Discord 管理員可以在網頁上調設定、看信用事件、清可疑用戶
+
+## 技術選型
+
+| 層 | 用什麼 |
+| --- | --- |
+| 框架 | Next.js 16 (webpack) |
+| 語音 | LiveKit |
+| 資料庫 | PostgreSQL + Prisma |
+| 樣式 | CSS Module + 自訂變數 |
+| 部署 | Render |
+
+## 開發
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+環境變數請看 `.env`，裡面有 Discord OAuth、LiveKit、HenrikDev API 那些。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 頁面路徑
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/` — 組隊大廳，主要入口
+- `/dashboard` — 個人控制台，綁定 Riot ID、看信用走勢、互評隊友
+- `/leaderboard` — 信用排行榜
+- `/player/[discordId]` — 公開玩家頁面
+- `/admin` — 伺服器管理員設定面板
 
-## Learn More
+## 語音怎麼運作
 
-To learn more about Next.js, take a look at the following resources:
+進房間 → 跟 LiveKit Server 要 token → 用 WebSocket 進語音房 → 推 mic track → 收大家音訊。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Audio Settings 面板可以切 mic 跟 speaker 裝置，ControlBar 控制 mute / disconnect。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 免責
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Riot API 資料來自 Riot Games 官方 API，牌位查詢走 HenrikDev。跟 Riot Games 沒有合作關係。

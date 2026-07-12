@@ -3,16 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from '../page.module.css';
+import NavHeader from '@/components/NavHeader';
+import { useAuth } from '@/lib/AuthContext';
 import { IconMessageCircle, IconAlertTriangle, IconGamepad2, IconShield, IconCheck, IconHandshake, IconThumbsUp, IconThumbsDown, IconMoon } from '@/components/Icons';
-
-interface Session {
-  id: string;
-  username: string;
-  avatar: string;
-  riotId: string | null;
-  rank: string | null;
-  valoScore: number;
-}
 
 interface HistoricalSquad {
   id: string;
@@ -38,8 +31,7 @@ interface CreditPoint {
 }
 
 export default function Dashboard() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loadingSession, setLoadingSession] = useState(true);
+  const { session, loading: loadingSession, updateSession } = useAuth();
   
   const [stats, setStats] = useState<any>(null);
   const [squads, setSquads] = useState<HistoricalSquad[]>([]);
@@ -54,33 +46,9 @@ export default function Dashboard() {
   const [ratingType, setRatingType] = useState<'good' | 'toxic' | 'afk' | null>(null);
   const [submittingRating, setSubmittingRating] = useState(false);
 
-  const getCookie = (name: string) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return decodeURIComponent(parts.pop()?.split(';').shift() || '');
-    return null;
-  };
-
-  const updateSessionCookie = (updatedFields: Partial<Session>) => {
-    if (!session) return;
-    const newSession = { ...session, ...updatedFields };
-    setSession(newSession);
-    document.cookie = `user_session=${encodeURIComponent(JSON.stringify(newSession))}; path=/; max-age=${60 * 60 * 24 * 7}; same-site=lax`;
-  };
-
   useEffect(() => {
-    const sessionCookie = getCookie('user_session');
-    if (sessionCookie) {
-      try {
-        const parsed = JSON.parse(sessionCookie);
-        setSession(parsed);
-        setRiotInput(parsed.riotId || '');
-      } catch (err) {
-        console.error('Failed to parse user session cookie:', err);
-      }
-    }
-    setLoadingSession(false);
-  }, []);
+    if (session) setRiotInput(session.riotId || '');
+  }, [session]);
 
   const fetchStats = async () => {
     if (!session) return;
@@ -127,7 +95,7 @@ export default function Dashboard() {
       if (res.ok) {
         const rankMsg = data.rank ? `牌位：${data.rank}` : (data.rankError ? data.rankError : '尚未取得牌位');
         alert(`成功綁定 Riot ID！${rankMsg}`);
-        updateSessionCookie({ riotId: data.riotId, rank: data.rank });
+        updateSession({ riotId: data.riotId, rank: data.rank });
         fetchStats();
       } else {
         alert(`綁定失敗: ${data.error}`);
@@ -253,21 +221,7 @@ export default function Dashboard() {
 
   return (
     <div className="container">
-      {/* Premium Header */}
-      <header className={styles.header}>
-        <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/logo.png" alt="ValoLink Logo" style={{ width: '24px', height: '24px', borderRadius: '4px' }} />
-          <Link href="/">VALOLINK<span className={styles.logoDot}>.GG</span></Link>
-        </div>
-        <nav className={styles.nav}>
-          <Link href="/" className={styles.navLink}>組隊大廳 (Lobby)</Link>
-          <Link href="/leaderboard" className={styles.navLink}>信用排行榜 (ValoScore)</Link>
-          <Link href="/dashboard" className={`${styles.navLink} ${styles.navActive}`}>個人控制台 (Dashboard)</Link>
-        </nav>
-        <a href="/api/auth/logout" className="btn-secondary" style={{ padding: '8px 20px', fontSize: '0.9rem' }}>
-          登出 / LOGOUT
-        </a>
-      </header>
+      <NavHeader />
 
       {loadingData || !stats ? (
         <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-secondary)' }}>

@@ -9,6 +9,8 @@ import {
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import '@livekit/components-styles';
+import AudioSettings from '@/components/AudioSettings';
+import { IconMic, IconMicOff, IconVolume2 } from '@/components/Icons';
 
 interface SessionInfo {
   id: string;
@@ -25,7 +27,7 @@ interface VoiceRoomProps {
 function ParticipantsList() {
   const tracks = useTracks([Track.Source.Microphone, Track.Source.ScreenShareAudio]);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px', maxHeight: '160px', overflowY: 'auto' }}>
       {tracks.map((track) => (
         <div key={track.participant.identity} style={{
           display: 'flex', alignItems: 'center', gap: '8px',
@@ -44,6 +46,11 @@ function ParticipantsList() {
           </span>
         </div>
       ))}
+      {tracks.length === 0 && (
+        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '8px' }}>
+          尚無其他成員加入語音
+        </div>
+      )}
     </div>
   );
 }
@@ -53,6 +60,7 @@ export default function VoiceRoom({ lobbyId, session, onLeave }: VoiceRoomProps)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL;
 
@@ -83,7 +91,7 @@ export default function VoiceRoom({ lobbyId, session, onLeave }: VoiceRoomProps)
   if (!livekitUrl) {
     return (
       <div style={{ marginTop: '12px', fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-        LiveKit 尚未設定（缺少 NEXT_PUBLIC_LIVEKIT_URL）
+        LiveKit 尚未設定
       </div>
     );
   }
@@ -97,7 +105,7 @@ export default function VoiceRoom({ lobbyId, session, onLeave }: VoiceRoomProps)
           className="btn-primary"
           style={{ width: '100%', padding: '10px', fontSize: '0.85rem', justifyContent: 'center', backgroundColor: '#6366f1', borderColor: '#6366f1' }}
         >
-          {loading ? '連線中...' : '加入語音聊天 (LiveKit)'}
+          <IconMic /> 加入語音聊天
         </button>
         {error && (
           <div style={{ marginTop: '8px', padding: '8px', fontSize: '0.8rem', color: '#ff4655', background: 'rgba(255,70,85,0.1)', borderRadius: '4px' }}>
@@ -109,7 +117,7 @@ export default function VoiceRoom({ lobbyId, session, onLeave }: VoiceRoomProps)
   }
 
   return (
-    <div style={{ marginTop: '12px' }}>
+    <div style={{ marginTop: '8px' }}>
       {token && (
         <LiveKitRoom
           serverUrl={livekitUrl}
@@ -121,19 +129,33 @@ export default function VoiceRoom({ lobbyId, session, onLeave }: VoiceRoomProps)
           style={{ height: 'auto', minHeight: '200px' }}
         >
           <div className="glass-card" style={{
-            padding: '12px',
+            padding: '10px',
             border: '1px solid #6366f1',
             boxShadow: '0 0 12px rgba(99,102,241,0.25)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#6366f1' }}>
-                語音聊天室 (LiveKit)
+                <IconVolume2 /> 語音聊天室
               </span>
-              <span style={{ fontSize: '0.75rem', color: connected ? '#4eff8a' : 'var(--text-secondary)' }}>
-                {connected ? '已連線' : '連線中...'}
-              </span>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.75rem', color: connected ? '#4eff8a' : 'var(--text-secondary)' }}>
+                  {connected ? '已連線' : '連線中...'}
+                </span>
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  style={{
+                    background: 'none', border: '1px solid var(--border-default)', borderRadius: '4px',
+                    color: 'var(--text-secondary)', cursor: 'pointer', padding: '2px 6px', fontSize: '0.75rem'
+                  }}
+                >
+                  音訊
+                </button>
+              </div>
             </div>
-            <ControlBar controls={{ microphone: true, leave: true }} />
+
+            {showSettings && <AudioSettings onClose={() => setShowSettings(false)} />}
+
+            <ControlBar controls={{ microphone: true, leave: true, settings: false }} />
             <RoomAudioRenderer />
             <ParticipantsList />
           </div>

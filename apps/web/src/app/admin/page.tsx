@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from '../page.module.css';
+import NavHeader from '@/components/NavHeader';
 import { IconCheck, IconXCircle, IconShield, IconAlertTriangle, IconClipboardList, IconWrench, IconSave, IconSettings, IconZap, IconMegaphone } from '@/components/Icons';
 
 interface Config {
@@ -103,20 +104,7 @@ export default function AdminPage() {
 
   return (
     <div className="container" style={{ paddingTop: '24px', paddingBottom: '80px' }}>
-      <header className={styles.header}>
-        <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/logo.png" alt="ValoLink" style={{ width: '24px', height: '24px', borderRadius: '4px' }} />
-          <Link href="/">VALOLINK<span className={styles.logoDot}>.GG</span></Link>
-        </div>
-        <nav className={styles.nav}>
-          <Link href="/" className={styles.navLink}>組隊大廳</Link>
-          <Link href="/leaderboard" className={styles.navLink}>信用排行榜</Link>
-          <Link href="/dashboard" className={styles.navLink}>個人控制台</Link>
-        </nav>
-        <span style={{ background: 'rgba(255,70,85,0.15)', border: '1px solid rgba(255,70,85,0.4)', color: 'var(--accent-red)', padding: '4px 12px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 700 }}>
-          <IconShield /> 管理員面板
-        </span>
-      </header>
+      <NavHeader badge="管理員面板" />
 
       <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: '32px 0 8px' }}>
         <IconSettings /> 伺服器管理員面板

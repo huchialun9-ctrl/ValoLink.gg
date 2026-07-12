@@ -4,18 +4,24 @@
   align-items: center;
   height: var(--header-height);
   border-bottom: 1px solid var(--border-default);
-  background-color: var(--bg-secondary);
+  background: rgba(11,26,34,0.55);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
   padding: 0 24px;
-  margin: 0 -24px 24px;
+  margin: 0 -24px 28px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
 }
 
 .logo {
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
   color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
+  letter-spacing: 0.02em;
 }
 
 .logoDot {
@@ -24,38 +30,38 @@
 
 .nav {
   display: flex;
-  gap: 4px;
+  gap: 2px;
 }
 
 .navLink {
   color: var(--text-secondary);
   font-weight: 500;
-  font-size: 14px;
-  padding: 8px 12px;
+  font-size: 13px;
+  padding: 7px 14px;
   border-radius: var(--radius-sm);
-  transition: color 0.1s ease, background 0.1s ease;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 .navLink:hover {
   color: var(--text-primary);
-  background-color: var(--bg-hover);
+  background: var(--bg-hover);
   text-decoration: none;
 }
 
 .navActive {
   color: var(--text-primary);
-  background-color: var(--bg-tertiary);
+  background: var(--bg-tertiary);
 }
 
 .hero {
   padding: 0;
-  margin-bottom: 32px;
+  margin-bottom: 36px;
 }
 
 .heroTitle {
-  font-size: 28px;
-  font-weight: 600;
-  letter-spacing: -0.5px;
-  margin-bottom: 8px;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
   color: var(--text-primary);
 }
 
@@ -67,13 +73,13 @@
   color: var(--text-secondary);
   font-size: 14px;
   max-width: 640px;
-  margin-bottom: 20px;
-  line-height: 1.6;
+  margin-bottom: 22px;
+  line-height: 1.7;
 }
 
 .heroButtons {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .lobbySection {
@@ -84,7 +90,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .sectionTitle {
@@ -96,7 +102,7 @@
 .filters {
   display: flex;
   gap: 4px;
-  background-color: var(--bg-secondary);
+  background: var(--bg-secondary);
   padding: 3px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-muted);
@@ -105,24 +111,25 @@
 .filterBtn {
   background: transparent;
   border: none;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 4px;
   color: var(--text-secondary);
   cursor: pointer;
   font-size: 12px;
   font-weight: 500;
-  transition: all 0.1s ease;
+  font-family: var(--font-sans);
+  transition: all 0.15s ease;
 }
 
 .filterBtnActive, .filterBtn:hover {
-  background: var(--bg-inset);
+  background: rgba(255,255,255,0.10);
   color: var(--text-primary);
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .cardHeader {
@@ -133,15 +140,16 @@
 }
 
 .modeBadge {
-  background: rgba(88,166,255,0.12);
-  border: 1px solid rgba(88,166,255,0.3);
+  background: rgba(95,203,211,0.12);
+  border: 1px solid rgba(95,203,211,0.3);
   color: var(--accent-blue);
-  padding: 0 8px;
+  padding: 0 10px;
   height: 22px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   line-height: 22px;
   border-radius: 20px;
+  letter-spacing: 0.02em;
 }
 
 .rankLimit {
@@ -154,7 +162,7 @@
   font-size: 14px;
   color: var(--text-primary);
   margin-bottom: 16px;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .cardFooter {
@@ -173,9 +181,9 @@
 }
 
 .avatarMock {
-  width: 24px;
-  height: 24px;
-  background: var(--bg-tertiary);
+  width: 26px;
+  height: 26px;
+  background: rgba(255,255,255,0.08);
   border-radius: 50%;
   border: 1px solid var(--border-default);
   display: flex;
