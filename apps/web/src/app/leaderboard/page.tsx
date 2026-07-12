@@ -98,9 +98,9 @@ export default function Leaderboard() {
       </header>
 
       {/* Hero Header */}
-      <section className={styles.hero} style={{ padding: '60px 0 30px' }}>
-        <h1 className={styles.heroTitle} style={{ fontSize: '3rem' }}>
-          ValoScore <span className={styles.heroHighlight}>信用排行榜</span>
+      <section className={styles.hero}>
+        <h1 className={styles.heroTitle}>
+          🏆 ValoScore <span className={styles.heroHighlight}>信用排行榜</span>
         </h1>
         <p className={styles.heroSubtitle}>
           基於賽後匿名互評機制的信用積分系統。系統將優先保護高信用分玩家，杜絕惡意擺爛與言語暴力。
@@ -109,83 +109,58 @@ export default function Leaderboard() {
 
       {/* Leaderboard Table Section */}
       <section style={{ paddingBottom: '80px' }}>
-        <div className={styles.sectionHeader} style={{ flexWrap: 'wrap', gap: '16px' }}>
-          <h2 className={styles.sectionTitle}>頂尖信用玩家</h2>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>👑 頂尖信用玩家</h2>
           <div>
             <input
               type="text"
-              placeholder="搜尋 Riot ID..."
+              placeholder="🔍 搜尋 Riot ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                padding: '10px 20px',
-                borderRadius: '4px',
-                color: '#fff',
-                fontSize: '0.95rem',
-                outline: 'none',
-                width: '260px',
-                fontFamily: 'var(--font-primary)'
-              }}
+              className="input-field"
+              style={{ width: '240px' }}
             />
           </div>
         </div>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-            載入排行榜中...
+            📊 載入排行榜中...
           </div>
         ) : filteredPlayers.length === 0 ? (
           <div className="glass-card" style={{ textAlign: 'center', padding: '40px' }}>
-            沒有找到相符的信用玩家紀錄。
+            😕 沒有找到相符的信用玩家紀錄。
           </div>
         ) : (
-          <div className="glass-card" style={{ padding: '0', overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div className="table-wrap">
+            <table>
               <thead>
-                <tr style={{ borderBottom: '2px solid rgba(255, 70, 85, 0.2)', color: 'var(--text-secondary)', fontFamily: 'var(--font-accent)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  <th style={{ padding: '16px 24px' }}>排名</th>
-                  <th style={{ padding: '16px 24px' }}>玩家 Riot ID</th>
-                  <th style={{ padding: '16px 24px' }}>Discord ID</th>
-                  <th style={{ padding: '16px 24px' }}>遊戲牌位</th>
-                  <th style={{ padding: '16px 24px', textAlign: 'right' }}>ValoScore 信用值</th>
+                <tr>
+                  <th>🏅 排名</th>
+                  <th>🎮 玩家 Riot ID</th>
+                  <th>🆔 Discord ID</th>
+                  <th>🏆 遊戲牌位</th>
+                  <th style={{ textAlign: 'right' }}>⭐ ValoScore</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredPlayers.map((player) => (
-                  <tr 
-                    key={player.id} 
-                    style={{ 
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                      transition: 'background 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 70, 85, 0.03)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <td style={{ padding: '20px 24px', fontWeight: 'bold', color: player.rank <= 3 ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>
+                  <tr key={player.id}>
+                    <td style={{ fontWeight: 600, color: player.rank <= 3 ? 'var(--accent-orange)' : 'var(--text-primary)' }}>
                       #{player.rank}
                     </td>
-                    <td style={{ padding: '20px 24px', fontWeight: '600' }}>
+                    <td style={{ fontWeight: 500 }}>
                       {player.riotId}
                     </td>
-                    <td style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                    <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
                       {player.id}
                     </td>
-                    <td style={{ padding: '20px 24px' }}>
-                      <span style={{
-                        background: 'rgba(0, 240, 255, 0.1)',
-                        border: '1px solid var(--accent-cyan)',
-                        color: 'var(--accent-cyan)',
-                        padding: '4px 10px',
-                        fontSize: '0.8rem',
-                        fontWeight: '600',
-                        borderRadius: '2px'
-                      } as React.CSSProperties}>
+                    <td>
+                      <span className={`badge ${player.gameRank === '未配對牌位' ? 'badge-orange' : 'badge-blue'}`}>
                         {player.gameRank}
                       </span>
                     </td>
-                    <td style={{ padding: '20px 24px', textAlign: 'right', fontWeight: 'bold', color: player.valoScore >= 90 ? '#4eff8a' : '#ff4655' }}>
+                    <td style={{ textAlign: 'right', fontWeight: 600, color: player.valoScore >= 90 ? 'var(--accent-green)' : 'var(--text-primary)' }}>
                       {player.valoScore} pts
                     </td>
                   </tr>

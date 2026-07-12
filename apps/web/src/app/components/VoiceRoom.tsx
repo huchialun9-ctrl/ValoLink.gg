@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import {
   LiveKitRoom,
   RoomAudioRenderer,
-  ControlBar,
   ParticipantLoop,
   ParticipantName,
   useTracks,
@@ -12,7 +11,6 @@ import {
   DisconnectButton,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
-import '@livekit/components-styles';
 
 interface VoiceRoomProps {
   roomName: string;
@@ -109,16 +107,16 @@ export default function VoiceRoom({ roomName, identity, displayName, onLeave }: 
         alignItems: 'center',
         gap: '8px',
         padding: '8px 12px',
-        background: 'linear-gradient(135deg, #0f172a, #1e293b)',
-        borderRadius: '8px',
-        border: '1px solid #334155',
+        background: 'var(--bg-tertiary)',
+        borderRadius: 'var(--radius-sm)',
+        border: '1px solid var(--border-default)',
         marginTop: '4px',
       }}>
         <TrackToggle source={Track.Source.Microphone} />
         <Participants />
         <div style={{ marginLeft: 'auto' }}>
           <DisconnectButton onClick={onLeave}>
-            <span style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 600 }}>離開語音</span>
+            <span style={{ color: 'var(--accent-red)', fontSize: '13px', fontWeight: 500 }}>離開語音</span>
           </DisconnectButton>
         </div>
       </div>

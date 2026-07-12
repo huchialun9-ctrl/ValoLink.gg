@@ -244,27 +244,27 @@ export default function Home() {
     <div className="container">
       {/* Premium Header */}
       <header className={styles.header}>
-        <div className={styles.logo} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/logo.png" alt="ValoLink Logo" style={{ width: '24px', height: '24px', borderRadius: '4px' }} />
-          <Link href="/">VALOLINK<span className={styles.logoDot}>.GG</span></Link>
+        <div className={styles.logo}>
+          <img src="/logo.png" alt="" style={{ width: '20px', height: '20px' }} />
+          <Link href="/">ValoLink<span className={styles.logoDot}>.GG</span></Link>
         </div>
         <nav className={styles.nav}>
           <Link href="/" className={`${styles.navLink} ${styles.navActive}`}>組隊大廳 (Lobby)</Link>
           <Link href="/leaderboard" className={styles.navLink}>信用排行榜 (ValoScore)</Link>
           <Link href="/dashboard" className={styles.navLink}>個人控制台 (Dashboard)</Link>
         </nav>
-        {session ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img src={session.avatar} alt={session.username} style={{ width: '28px', height: '28px', borderRadius: '50%' }} />
-            <Link href="/dashboard" className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }}>
-              主控台
-            </Link>
-          </div>
-        ) : (
-          <a href="/api/auth/login" className="btn-secondary" style={{ padding: '8px 20px', fontSize: '0.9rem' }}>
-            登入 / LOGIN
-          </a>
-        )}
+          {session ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <img src={session.avatar} alt={session.username} style={{ width: '24px', height: '24px', borderRadius: '50%' }} />
+              <Link href="/dashboard" className="btn-secondary">
+                📊 主控台
+              </Link>
+            </div>
+          ) : (
+            <a href="/api/auth/login" className="btn-secondary">
+              🔑 登入
+            </a>
+          )}
       </header>
 
       {/* Hero Section */}
@@ -286,40 +286,40 @@ export default function Home() {
       {/* Interactive Form Panel */}
       {showForm && (
         <div className="glass-card" style={{ marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px' }}>
-          <h3 style={{ marginBottom: '20px', fontSize: '1.2rem', fontWeight: 600 }}>建立您的戰術隊伍</h3>
+          <h3 style={{ marginBottom: '20px', fontSize: '16px', fontWeight: 600 }}>📋 建立新隊伍</h3>
           <form onSubmit={handleCreateLobby}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', color: 'var(--text-secondary)' }}>Riot ID (含 #)</label>
+                <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px', color: 'var(--text-secondary)', fontWeight: 500 }}>🎮 Riot ID (含 #)</label>
                 <input
                   type="text"
                   placeholder="TenZ#NA1"
                   value={formRiotId}
                   onChange={(e) => setFormRiotId(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: '4px', outline: 'none' }}
+                  className="input-field"
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', color: 'var(--text-secondary)' }}>Discord 使用者 ID</label>
+                <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px', color: 'var(--text-secondary)', fontWeight: 500 }}>🆔 Discord ID</label>
                 <input
                   type="text"
                   placeholder="23456789012345"
                   value={formDiscordId}
                   onChange={(e) => setFormDiscordId(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: '4px', outline: 'none' }}
+                  className="input-field"
                 />
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', color: 'var(--text-secondary)' }}>遊戲模式</label>
+                <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px', color: 'var(--text-secondary)', fontWeight: 500 }}>🎯 遊戲模式</label>
                 <select
                   value={formGameMode}
                   onChange={(e) => setFormGameMode(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: '4px', outline: 'none' }}
+                  className="input-field"
                 >
                   <option value="Competitive">競技模式 (Competitive)</option>
                   <option value="Unrated">一般模式 (Unrated)</option>
@@ -328,11 +328,11 @@ export default function Home() {
                 </select>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', color: 'var(--text-secondary)' }}>最低牌位限制</label>
+                <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px', color: 'var(--text-secondary)', fontWeight: 500 }}>🏆 最低牌位</label>
                 <select
                   value={formMinRank}
                   onChange={(e) => setFormMinRank(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: '4px', outline: 'none' }}
+                  className="input-field"
                 >
                   <option value="Iron">鐵牌 (Iron)</option>
                   <option value="Bronze">銅牌 (Bronze)</option>
@@ -347,18 +347,19 @@ export default function Home() {
               </div>
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', color: 'var(--text-secondary)' }}>隊伍備註</label>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px', color: 'var(--text-secondary)', fontWeight: 500 }}>📝 備註</label>
               <textarea
                 placeholder="例如: 缺控場/開麥/歡樂打"
                 value={formDesc}
                 onChange={(e) => setFormDesc(e.target.value)}
-                style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: '4px', minHeight: '60px', resize: 'vertical', outline: 'none' }}
+                className="input-field"
+                style={{ minHeight: '60px' }}
               />
             </div>
 
             <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={submitting}>
-              {submitting ? '建立中...' : '確認建立房間'}
+              {submitting ? '⏳ 建立中...' : '✅ 建立房間'}
             </button>
           </form>
         </div>
@@ -382,29 +383,29 @@ export default function Home() {
         </div>
 
         {/* Loading and Error States */}
-        {loading && lobbies.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-            正在同步 Riot 與 Discord 組隊大廳資料中...
-          </div>
-        )}
+          {loading && lobbies.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+              🔄 正在同步組隊大廳資料...
+            </div>
+          )}
 
-        {error && (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--primary-red)' }}>
-            {error}
-          </div>
-        )}
+          {error && (
+            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--accent-red)' }}>
+              {error}
+            </div>
+          )}
 
-        {/* Empty State */}
-        {!loading && !error && filteredLobbies.length === 0 && (
-          <div className="glass-card" style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <h3 style={{ marginBottom: '12px', color: 'var(--primary-blue)', fontSize: '1.3rem', fontWeight: 600 }}>
-              ⚠️ 目前沒有活躍的揪團隊伍
-            </h3>
-            <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 24px', fontSize: '0.95rem' }}>
-              現在大廳內空空如也。請點擊上方按鈕在網頁直接發起隊伍，或使用 Discord 機器人在您的伺服器輸入 <strong>/create</strong> 快速建立第一個戰術組隊！
-            </p>
-          </div>
-        )}
+          {/* Empty State */}
+          {!loading && !error && filteredLobbies.length === 0 && (
+            <div className="glass-card" style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <h3 style={{ marginBottom: '12px', color: 'var(--accent-blue)', fontSize: '18px', fontWeight: 600 }}>
+                📭 目前沒有活躍的揪團隊伍
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 24px', fontSize: '14px' }}>
+                大廳內空空如也。點擊上方按鈕發起隊伍，或使用 Discord 輸入 <strong>/create</strong> 快速建立！
+              </p>
+            </div>
+          )}
 
         {/* Squad Cards Grid */}
         {filteredLobbies.length > 0 && (
@@ -415,49 +416,53 @@ export default function Home() {
               const isFull = lobby.currentCount >= lobby.maxCount;
 
               return (
-                <div key={lobby.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: lobby.status === 'PLAYING' ? '1px solid #28a745' : '1px solid var(--border-color)' }}>
+                <div key={lobby.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: lobby.status === 'PLAYING' ? '1px solid var(--accent-green)' : '' }}>
                   <div>
                     <div className={styles.cardHeader}>
-                      <span className={styles.modeBadge} style={{ backgroundColor: lobby.status === 'PLAYING' ? '#28a745' : 'var(--primary-blue)' }}>
-                        {lobby.mode} {lobby.status === 'PLAYING' && '• 進行中'}
+                      <span className={lobby.status === 'PLAYING' ? 'badge badge-green' : 'badge badge-blue'}>
+                        {lobby.mode} {lobby.status === 'PLAYING' && '· 進行中'}
                       </span>
-                      <span className={styles.rankLimit}>🏆 {lobby.minRank} +</span>
+                      <span className={styles.rankLimit}>🏆 {lobby.minRank}+</span>
                     </div>
                     <p className={styles.cardDesc}>{lobby.description}</p>
                   </div>
                   
                   <div>
-                    <div className={styles.cardFooter} style={{ marginBottom: '12px' }}>
+                    <div className={styles.cardFooter}>
                       <div className={styles.captainInfo}>
-                        <div className={styles.avatarMock}>{lobby.captainAvatar}</div>
+                        <div className={styles.avatarMock}>
+                          {lobby.captainAvatar?.startsWith('http') ? (
+                            <img src={lobby.captainAvatar} alt="" />
+                          ) : (
+                            <span>{lobby.captainName?.[0] || '?'}</span>
+                          )}
+                        </div>
                         <div>
                           <div className={styles.captainName}>{lobby.captainName}</div>
-                          <div className={styles.captainScore}>信用分: {lobby.valoScore}</div>
+                          <div className={styles.captainScore}>⭐ {lobby.valoScore}</div>
                         </div>
                       </div>
                       <div className={styles.memberCount}>
-                        人數: <span className={styles.memberCountActive}>{lobby.currentCount}</span> / {lobby.maxCount}
+                        👤 <span className={styles.memberCountActive}>{lobby.currentCount}</span>/{lobby.maxCount}
                       </div>
                     </div>
 
                     {/* Actions Panel */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '12px' }}>
                       {/* Captain Controls */}
                       {isCaptain && lobby.status === 'OPEN' && (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                           <button 
                             onClick={() => handleCaptainAction(lobby.id, 'start')}
-                            className="btn-primary" 
-                            style={{ padding: '8px', fontSize: '0.85rem', justifyContent: 'center', backgroundColor: '#28a745' }}
+                            className="btn-primary"
                           >
                             ⚔️ 出發開打
                           </button>
                           <button 
                             onClick={() => handleCaptainAction(lobby.id, 'close')}
-                            className="btn-secondary" 
-                            style={{ padding: '8px', fontSize: '0.85rem', justifyContent: 'center' }}
+                            className="btn-secondary"
                           >
-                            🗑️ 解散房間
+                            🗑️ 解散
                           </button>
                         </div>
                       )}
@@ -466,10 +471,10 @@ export default function Home() {
                       {isCaptain && lobby.status === 'PLAYING' && (
                         <button 
                           onClick={() => handleCaptainAction(lobby.id, 'close')}
-                          className="btn-secondary" 
-                          style={{ padding: '8px', fontSize: '0.85rem', justifyContent: 'center', width: '100%' }}
+                          className="btn-secondary"
+                          style={{ width: '100%' }}
                         >
-                          🗑️ 結束並關閉房間
+                          🗑️ 關閉房間
                         </button>
                       )}
 
@@ -486,82 +491,57 @@ export default function Home() {
                           <button
                             onClick={() => setActiveVoiceRoom(lobby.id)}
                             className="btn-primary"
-                            style={{
-                              width: '100%',
-                              padding: '10px',
-                              fontSize: '0.85rem',
-                              justifyContent: 'center',
-                              backgroundColor: '#28a745',
-                              boxShadow: '0 0 10px rgba(40, 167, 69, 0.4)',
-                            }}
+                            style={{ width: '100%', backgroundColor: 'var(--btn-green-bg)' }}
                           >
-                            🎙️ 加入語音房間
+                            🎙️ 加入語音
                           </button>
                         )
                       )}
 
-                      {/* Standard Join Button (only shown for open lobbies when not joined) */}
+                      {/* Standard Join Button */}
                       {!isCaptain && lobby.status === 'OPEN' && (
                         <button 
                           onClick={() => handleJoinLobby(lobby.id)}
                           disabled={isUserInLobby || isFull}
                           className={isUserInLobby ? "btn-secondary" : "btn-primary"}
                           style={{ 
-                            width: '100%', 
-                            fontSize: '0.85rem', 
-                            padding: '8px', 
-                            justifyContent: 'center',
-                            backgroundColor: isUserInLobby ? '#f3f4f6' : (isFull ? '#e5e7eb' : 'var(--btn-green)'),
-                            color: isUserInLobby ? 'var(--text-secondary)' : '#ffffff',
-                            border: isUserInLobby ? '1px solid var(--border-color)' : 'none',
+                            width: '100%',
                             cursor: (isUserInLobby || isFull) ? 'not-allowed' : 'pointer'
                           }}
                         >
-                          {isUserInLobby ? '✓ 已加入隊伍 (Joined)' : (isFull ? '人數已滿 (Full)' : '一鍵加入房間 (Join)')}
+                          {isUserInLobby ? '✅ 已加入' : (isFull ? '❌ 人數已滿' : '➕ 加入房間')}
                         </button>
                       )}
 
-                      {/* Match in Progress Indicator (for non-members) */}
+                      {/* Match in Progress (for non-members) */}
                       {!isCaptain && !isUserInLobby && lobby.status === 'PLAYING' && (
-                        <button 
-                          disabled 
-                          className="btn-secondary"
-                          style={{ 
-                            width: '100%', 
-                            fontSize: '0.85rem', 
-                            padding: '8px', 
-                            justifyContent: 'center',
-                            cursor: 'not-allowed',
-                            backgroundColor: '#f3f4f6'
-                          }}
-                        >
-                          ⚔️ 戰局進行中 (Playing)
+                        <button disabled className="btn-secondary" style={{ width: '100%', cursor: 'not-allowed' }}>
+                          ⚔️ 戰局進行中
                         </button>
                       )}
                     </div>
 
                     {/* Real-time Voice Link Members Roster */}
                     {lobby.membersList && lobby.membersList.length > 0 && (
-                      <div style={{ borderTop: '1px solid #f1f2f4', paddingTop: '12px' }}>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '8px', fontWeight: '600' }}>隊員語音狀態 (Voice Status)</div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ borderTop: '1px solid var(--border-muted)', paddingTop: '10px', marginTop: '12px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '6px', fontWeight: 600 }}>👥 隊員</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           {lobby.membersList.map((m) => (
-                            <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem' }}>
-                              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <span style={{ 
-                                  width: '8px', 
-                                  height: '8px', 
+                                  width: '6px', 
+                                  height: '6px', 
                                   borderRadius: '50%', 
-                                  background: m.inVoice ? '#238636' : '#cbd5e1',
-                                  boxShadow: m.inVoice ? '0 0 8px #2ea44f' : 'none',
+                                  background: m.inVoice ? 'var(--accent-green)' : 'var(--text-tertiary)',
                                   display: 'inline-block'
                                 }} />
-                                <span style={{ color: m.inVoice ? '#238636' : 'var(--text-primary)', fontWeight: m.inVoice ? '600' : 'normal' }}>
+                                <span style={{ color: m.inVoice ? 'var(--accent-green)' : 'var(--text-primary)', fontWeight: m.inVoice ? '500' : 'normal' }}>
                                   {m.riotId}
                                 </span>
-                                {m.inVoice && <span style={{ fontSize: '0.75rem', color: '#238636', fontWeight: '600' }}>(🎙️ 語音中)</span>}
+                                {m.inVoice && <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>🎙️</span>}
                               </span>
-                              <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>信用: {m.valoScore} pts</span>
+                              <span style={{ color: 'var(--text-tertiary)', fontSize: '11px' }}>{m.valoScore} pts</span>
                             </div>
                           ))}
                         </div>
