@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "ln -sf ../../node_modules ./node_modules 2>/dev/null; exit 0",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint"
