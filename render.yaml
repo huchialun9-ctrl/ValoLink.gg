@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: valolink-web
+    env: node
+    repo: https://github.com/huchialun9-ctrl/ValoLink.gg.git
+    buildCommand: npm run build:web
+    startCommand: npm run start --workspace=apps/web
+    envVars:
+      - key: NODE_VERSION
+        value: 20
