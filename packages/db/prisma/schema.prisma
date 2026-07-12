@@ -9,7 +9,7 @@ generator client {
 
 model User {
   id             String          @id
-  riotId         String?
+  riotId         String?         @unique
   rank           String?
   valoScore      Int             @default(100)
   isSuspicious   Boolean         @default(false)

@@ -50,14 +50,29 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if this Riot ID is already bound to another Discord account
+    const existingUser = await prisma.user.findUnique({ where: { riotId } });
+    if (existingUser && existingUser.id !== userId) {
+      return NextResponse.json(
+        { error: '此 Riot ID 已被其他 Discord 帳號綁定。每個 Riot ID 只能綁定一個帳號。' },
+        { status: 409 }
+      );
+    }
+
     // Fetch real rank — null means unverified, NOT fabricated
     const resolvedRank = await fetchRealRank(riotId);
 
-    const user = await prisma.user.update({
+    const user = await prisma.user.upsert({
       where: { id: userId },
-      data: {
+      update: {
         riotId,
         rank: resolvedRank  // null = 未能驗證牌位
+      },
+      create: {
+        id: userId,
+        riotId,
+        rank: resolvedRank,
+        valoScore: 100
       }
     });
 

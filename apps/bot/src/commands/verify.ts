@@ -25,10 +25,18 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   try {
     await interaction.deferReply({ ephemeral: true });
 
-    // 1. Fetch REAL rank from Riot API (returns null if unavailable)
+    // 1. Check if this Riot ID is already bound to another Discord account
+    const existingUser = await prisma.user.findUnique({ where: { riotId } });
+    if (existingUser && existingUser.id !== userId) {
+      return interaction.editReply({
+        content: '❌ 此 Riot ID 已被其他 Discord 帳號綁定。每個 Riot ID 只能綁定一個帳號。'
+      });
+    }
+
+    // 2. Fetch REAL rank from Riot API (returns null if unavailable)
     const rank = await fetchUserRank(riotId);
 
-    // 2. Update database — rank is null if Riot API couldn't verify
+    // 3. Update database — rank is null if Riot API couldn't verify
     const user = await prisma.user.upsert({
       where: { id: userId },
       update: {
