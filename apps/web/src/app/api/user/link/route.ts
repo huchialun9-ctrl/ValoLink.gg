@@ -61,20 +61,27 @@ export async function POST(request: Request) {
 
     const { rank, error: rankError } = await fetchRealRank(riotId);
 
-    const user = await prisma.user.update({
-      where: { id: userId },
-      data: { riotId, rank }
-    });
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { riotId, rank }
+      });
+    } catch (err: any) {
+      if (err?.code === 'P2002') {
+        return NextResponse.json({ error: '此 Riot ID 已經被其他帳號綁定' }, { status: 409 });
+      }
+      throw err;
+    }
 
     return NextResponse.json({
       success: true,
-      riotId: user.riotId,
-      rank: user.rank,
+      riotId,
+      rank,
       rankVerified: rank !== null,
       rankError: rankError || null
     });
-  } catch (error) {
-    console.error('[link] Failed to link Riot ID:', error);
-    return NextResponse.json({ error: '伺服器內部錯誤' }, { status: 500 });
+  } catch (error: any) {
+    console.error('[link] Failed to link Riot ID:', error?.message || error);
+    return NextResponse.json({ error: error?.message === 'fetch failed' ? '無法連線至 Riot API，請稍後再試' : '伺服器內部錯誤' }, { status: 500 });
   }
 }
