@@ -5,6 +5,18 @@ import { SignJWT } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'valolink-default-secret-change-me');
 
+export async function GET() {
+  const clientId = process.env.CLIENT_ID;
+  const redirectUri = process.env.REDIRECT_URI || 'http://localhost:3000';
+
+  if (!clientId) {
+    return NextResponse.json({ error: 'Discord Client ID 未設定' }, { status: 500 });
+  }
+
+  const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(`${redirectUri}/api/auth/callback`)}&response_type=code&scope=identify`;
+  return NextResponse.redirect(url);
+}
+
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
@@ -18,8 +30,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Email 或密碼錯誤' }, { status: 401 });
     }
 
-    const valid = verifyPassword(password, user.passwordHash);
-    if (!valid) {
+    if (!verifyPassword(password, user.passwordHash)) {
       return NextResponse.json({ error: 'Email 或密碼錯誤' }, { status: 401 });
     }
 
