@@ -5,13 +5,6 @@ import { SignJWT } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'valolink-default-secret-change-me');
 
-function getRedirectUri(req?: NextRequest) {
-  if (process.env.REDIRECT_URI) return `${process.env.REDIRECT_URI.replace(/\/+$/, '')}/api/auth/callback`;
-  const host = req?.headers.get('host') || 'localhost:3000';
-  const protocol = host.startsWith('localhost') || host.startsWith('127.0.0.1') ? 'http' : 'https';
-  return `${protocol}://${host}/api/auth/callback`;
-}
-
 export async function GET(req: NextRequest) {
   const clientId = process.env.CLIENT_ID || process.env.NEXT_PUBLIC_CLIENT_ID;
 
@@ -19,7 +12,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Discord Client ID 未設定' }, { status: 500 });
   }
 
-  const redirectUri = getRedirectUri(req);
+  const loginUrl = new URL(req.url);
+  const redirectUri = `${loginUrl.origin}/api/auth/callback`;
+
   const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify`;
   return NextResponse.redirect(url);
 }

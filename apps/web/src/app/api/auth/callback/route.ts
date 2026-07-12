@@ -3,30 +3,24 @@ import { prisma } from '@valolink/db';
 
 export const dynamic = 'force-dynamic';
 
-function getRedirectUri(host: string) {
-  if (process.env.REDIRECT_URI) return `${process.env.REDIRECT_URI.replace(/\/+$/, '')}/api/auth/callback`;
-  const protocol = host.startsWith('localhost') || host.startsWith('127.0.0.1') ? 'http' : 'https';
-  return `${protocol}://${host}/api/auth/callback`;
-}
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const errorParam = searchParams.get('error');
 
   if (errorParam) {
-    const host = request.headers.get('host') || 'localhost:3000';
-    const protocol = host.startsWith('localhost') ? 'http' : 'https';
-    return NextResponse.redirect(`${protocol}://${host}/?auth_error=denied`);
+    const url = new URL(request.url);
+    const origin = url.origin;
+    return NextResponse.redirect(`${origin}/?auth_error=denied`);
   }
 
   if (!code) {
     return NextResponse.json({ error: 'Missing code parameter from Discord' }, { status: 400 });
   }
 
-  const host = request.headers.get('host') || 'localhost:3000';
-  const protocol = host.startsWith('localhost') ? 'http' : 'https';
-  const redirectUri = getRedirectUri(host);
+  const url = new URL(request.url);
+  const origin = url.origin;
+  const redirectUri = `${origin}/api/auth/callback`;
 
   const clientId = process.env.CLIENT_ID;
   const clientSecret = process.env.CLIENT_SECRET;
@@ -118,13 +112,13 @@ export async function GET(request: Request) {
     valoScore: user.valoScore ?? 100
   };
 
-  const responseRedirect = NextResponse.redirect(`${protocol}://${host}/dashboard`);
+  const responseRedirect = NextResponse.redirect(`${origin}/dashboard`);
   responseRedirect.cookies.set('user_session', JSON.stringify(sessionObj), {
     path: '/',
     httpOnly: false,
     maxAge: 60 * 60 * 24 * 7,
     sameSite: 'lax',
-    secure: protocol === 'https'
+    secure: origin.startsWith('https')
   });
 
   return responseRedirect;
