@@ -22,9 +22,9 @@ export default function SettingsPage() {
   useEffect(() => {
     if (session) {
       setDisplayName(session.username || '');
-      setEmail((session as any).email || '');
+      setEmail(session.email || '');
       setRiotId(session.riotId || '');
-      setBio((session as any).bio || '');
+      setBio(session.bio || '');
     }
   }, [session]);
 
@@ -216,7 +216,7 @@ export default function SettingsPage() {
             <IconShield /> 帳號資訊
           </h3>
           <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div><IconMail /> Email: {(session as any).email || '未設定'}</div>
+            <div><IconMail /> Email: {session.email || '未設定'}</div>
             <div><IconUser /> Discord 名稱: {session.username}</div>
             <div><IconShield /> ValoScore: {session.valoScore} pts</div>
           </div>

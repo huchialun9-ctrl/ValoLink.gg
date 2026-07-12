@@ -65,9 +65,9 @@ export async function POST(request: Request) {
 
     let baseDiff = 0;
     let desc = '';
-    if (rating === 'good')  { baseDiff = 2;   desc = '👍 友善配合 / 技術 Carry (網頁評分)'; }
-    if (rating === 'toxic') { baseDiff = -5;  desc = '👎 言語惡意 / 嘴砲騷擾 (網頁評分)'; }
-    if (rating === 'afk')   { baseDiff = -10; desc = '💤 惡意掛網 / 擺爛行為 (網頁評分)'; }
+    if (rating === 'good')  { baseDiff = 2;   desc = '友善配合 / 技術 Carry (網頁評分)'; }
+    if (rating === 'toxic') { baseDiff = -5;  desc = '言語惡意 / 嘴砲騷擾 (網頁評分)'; }
+    if (rating === 'afk')   { baseDiff = -10; desc = '惡意掛網 / 擺爛行為 (網頁評分)'; }
 
     // Suspicious ratings are quarantined (diff = 0, just recorded)
     const actualDiff = isSuspicious ? 0 : Math.round(baseDiff * weightMultiplier);

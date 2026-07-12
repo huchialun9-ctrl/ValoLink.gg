@@ -436,7 +436,7 @@ export default function Home() {
                             cursor: (isUserInLobby || isFull) ? 'not-allowed' : 'pointer'
                           }}
                         >
-                          {isUserInLobby ? '✓ 已加入隊伍 (Joined)' : (isFull ? '人數已滿 (Full)' : '一鍵加入房間 (Join)')}
+                          {isUserInLobby ? '已加入隊伍' : (isFull ? '人數已滿' : '加入房間')}
                         </button>
                       )}
 

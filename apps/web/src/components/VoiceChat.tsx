@@ -151,7 +151,7 @@ export default function VoiceChat({ lobbyId, session }: VoiceChatProps) {
               }),
             }).catch(() => {});
           })
-          .catch(console.error);
+          .catch(() => {});
       }
 
       return pc;
@@ -181,16 +181,16 @@ export default function VoiceChat({ lobbyId, session }: VoiceChatProps) {
               data: pc.localDescription,
             }),
           });
-        } catch (err) {
-          console.error('Error handling offer:', err);
+        } catch {
+          // ignore signal handling errors
         }
       } else if (signal.type === 'answer') {
         const entry = peersRef.current.get(signal.from);
         if (entry && entry.pc.signalingState === 'have-local-offer') {
           try {
             await entry.pc.setRemoteDescription(new RTCSessionDescription(signal.data));
-          } catch (err) {
-            console.error('Error handling answer:', err);
+          } catch {
+            // ignore answer errors
           }
         }
       } else if (signal.type === 'ice-candidate') {
@@ -198,8 +198,8 @@ export default function VoiceChat({ lobbyId, session }: VoiceChatProps) {
         if (entry) {
           try {
             await entry.pc.addIceCandidate(new RTCIceCandidate(signal.data));
-          } catch (err) {
-            console.error('Error adding ICE candidate:', err);
+          } catch {
+            // ignore ICE errors
           }
         }
       }
@@ -287,8 +287,8 @@ export default function VoiceChat({ lobbyId, session }: VoiceChatProps) {
 
       lastSignalTimeRef.current = Date.now();
       pollingRef.current = setInterval(pollSignals, 1000);
-    } catch (err: any) {
-      setError(err.message || '無法加入語音頻道');
+    } catch {
+      setError('無法加入語音頻道');
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach((t) => t.stop());
         localStreamRef.current = null;
