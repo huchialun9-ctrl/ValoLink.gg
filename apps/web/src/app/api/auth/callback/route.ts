@@ -3,12 +3,17 @@ import { prisma } from '@valolink/db';
 
 export const dynamic = 'force-dynamic';
 
+function getRedirectUri(host: string) {
+  if (process.env.REDIRECT_URI) return `${process.env.REDIRECT_URI.replace(/\/+$/, '')}/api/auth/callback`;
+  const protocol = host.startsWith('localhost') || host.startsWith('127.0.0.1') ? 'http' : 'https';
+  return `${protocol}://${host}/api/auth/callback`;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const errorParam = searchParams.get('error');
 
-  // Handle Discord denying the OAuth request
   if (errorParam) {
     const host = request.headers.get('host') || 'localhost:3000';
     const protocol = host.startsWith('localhost') ? 'http' : 'https';
@@ -21,9 +26,7 @@ export async function GET(request: Request) {
 
   const host = request.headers.get('host') || 'localhost:3000';
   const protocol = host.startsWith('localhost') ? 'http' : 'https';
-
-  const base = (process.env.REDIRECT_URI || `${protocol}://${host}`).replace(/\/+$/, '');
-  const redirectUri = `${base}/api/auth/callback`;
+  const redirectUri = getRedirectUri(host);
 
   const clientId = process.env.CLIENT_ID;
   const clientSecret = process.env.CLIENT_SECRET;
@@ -36,7 +39,6 @@ export async function GET(request: Request) {
     }, { status: 500 });
   }
 
-  // --- Step 1: Exchange code for access token ---
   let accessToken: string;
   try {
     const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
@@ -57,7 +59,7 @@ export async function GET(request: Request) {
       return NextResponse.json({
         error: 'Token exchange failed',
         detail: errBody,
-        hint: 'Ensure REDIRECT_URI in Render matches exactly what is set in Discord Developer Portal → OAuth2 → Redirects'
+        hint: `Ensure redirect_uri matches: ${redirectUri}`
       }, { status: 400 });
     }
 
@@ -68,7 +70,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Network error contacting Discord API' }, { status: 502 });
   }
 
-  // --- Step 2: Fetch user profile from Discord ---
   let userData: any;
   try {
     const userResponse = await fetch('https://discord.com/api/users/@me', {
@@ -93,7 +94,6 @@ export async function GET(request: Request) {
     ? `https://cdn.discordapp.com/avatars/${discordId}/${userData.avatar}.png`
     : `https://cdn.discordapp.com/embed/avatars/${Number(userData.discriminator || 0) % 5}.png`;
 
-  // --- Step 3: Upsert user in database ---
   let user: any;
   try {
     user = await prisma.user.upsert({
@@ -106,11 +106,9 @@ export async function GET(request: Request) {
     });
   } catch (err: any) {
     console.error('[Auth] Database upsert failed:', err?.message);
-    // Don't block login if DB is temporarily unreachable - create a minimal in-memory session
     user = { id: discordId, riotId: null, rank: null, valoScore: 100 };
   }
 
-  // --- Step 4: Set session cookie and redirect to dashboard ---
   const sessionObj = {
     id: discordId,
     username,
