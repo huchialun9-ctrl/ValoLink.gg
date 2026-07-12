@@ -6,9 +6,10 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'valolink-
 const CLIENT_ID = process.env.CLIENT_ID || '';
 const CLIENT_SECRET = process.env.CLIENT_SECRET || '';
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN || '';
-const REDIRECT_URI = process.env.REDIRECT_URI
-  ? `${process.env.REDIRECT_URI}/api/admin/callback`
-  : 'http://localhost:3000/api/admin/callback';
+const REDIRECT_URI = (() => {
+  const base = (process.env.REDIRECT_URI || 'http://localhost:3000').replace(/\/+$/, '');
+  return `${base}/api/admin/callback`;
+})();
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;

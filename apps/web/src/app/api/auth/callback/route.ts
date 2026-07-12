@@ -22,9 +22,8 @@ export async function GET(request: Request) {
   const host = request.headers.get('host') || 'localhost:3000';
   const protocol = host.startsWith('localhost') ? 'http' : 'https';
 
-  const redirectUri = process.env.REDIRECT_URI
-    ? `${process.env.REDIRECT_URI}/api/auth/callback`
-    : `${protocol}://${host}/api/auth/callback`;
+  const base = (process.env.REDIRECT_URI || `${protocol}://${host}`).replace(/\/+$/, '');
+  const redirectUri = `${base}/api/auth/callback`;
 
   const clientId = process.env.CLIENT_ID;
   const clientSecret = process.env.CLIENT_SECRET;

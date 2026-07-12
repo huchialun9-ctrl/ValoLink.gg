@@ -135,7 +135,7 @@ export default function AdminPage() {
           透過 Discord 授權驗證您的管理員身份。我們只會檢查您擁有的伺服器列表，不會記錄任何個人資訊。
         </p>
         <a
-          href={`https://discord.com/api/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID || ''}&redirect_uri=${encodeURIComponent(typeof window !== 'undefined' ? `${window.location.origin}/api/admin/callback` : '')}&response_type=code&scope=identify%20guilds`}
+          href="/api/admin/authorize"
           className="btn-primary"
           style={{ width: '100%', justifyContent: 'center', display: 'flex', textDecoration: 'none' }}
         >

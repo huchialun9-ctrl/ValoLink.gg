@@ -12,9 +12,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Discord Client ID 未設定，請在 Render 環境變數中設定 CLIENT_ID' }, { status: 500 });
   }
 
-  const redirectUri = process.env.REDIRECT_URI
-    ? `${process.env.REDIRECT_URI}/api/auth/callback`
-    : 'http://localhost:3000/api/auth/callback';
+  const base = (process.env.REDIRECT_URI || 'http://localhost:3000').replace(/\/+$/, '');
+  const redirectUri = `${base}/api/auth/callback`;
 
   const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify`;
   return NextResponse.redirect(url);
