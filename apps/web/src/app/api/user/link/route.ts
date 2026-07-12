@@ -62,6 +62,10 @@ export async function POST(request: Request) {
     const { rank, error: rankError } = await fetchRealRank(riotId);
 
     try {
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) {
+        return NextResponse.json({ error: '找不到使用者，請重新登入' }, { status: 404 });
+      }
       await prisma.user.update({
         where: { id: userId },
         data: { riotId, rank }
@@ -70,7 +74,8 @@ export async function POST(request: Request) {
       if (err?.code === 'P2002') {
         return NextResponse.json({ error: '此 Riot ID 已經被其他帳號綁定' }, { status: 409 });
       }
-      throw err;
+      console.error('[link] DB error:', err?.message, err?.code);
+      return NextResponse.json({ error: '資料庫錯誤，請稍後再試' }, { status: 500 });
     }
 
     return NextResponse.json({
