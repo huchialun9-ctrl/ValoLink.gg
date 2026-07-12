@@ -6,6 +6,12 @@
     "apps/*",
     "packages/*"
   ],
+  "dependencies": {
+    "@livekit/components-react": "^2.9.23",
+    "@prisma/client": "^5.22.0",
+    "livekit-client": "^2.20.1",
+    "livekit-server-sdk": "^2.17.0"
+  },
   "scripts": {
     "dev:bot": "npm run dev --workspace=apps/bot",
     "dev:web": "npm run dev --workspace=apps/web",
@@ -14,5 +20,8 @@
     "build:combined": "npx prisma@5.22.0 generate --schema=packages/db/prisma/schema.prisma && npm run build --workspace=packages/db && npm run build --workspace=apps/bot && npm run build --workspace=apps/web",
     "start:combined": "node apps/bot/dist/index.js & npm run start --workspace=apps/web",
     "postinstall": "npx prisma@5.22.0 generate --schema=packages/db/prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
   }
 }
