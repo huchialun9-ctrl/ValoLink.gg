@@ -39,7 +39,16 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingBottom: '8px' }}>
+        <a
+          href="https://discord.gg/nHP78jZrm"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="sidebar-link"
+          style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}
+        >
+          <IconUsers /> 官方 Discord 社群
+        </a>
         {session ? (
           <>
             <Link href="/settings" className={`sidebar-link ${pathname === '/settings' ? 'sidebar-linkActive' : ''}`}>
