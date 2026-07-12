@@ -354,7 +354,7 @@ export default function Home() {
               const isFull = lobby.currentCount >= lobby.maxCount;
 
               return (
-                <div key={lobby.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: lobby.status === 'PLAYING' ? '1px solid #28a745' : '1px solid var(--border-color)' }}>
+                <div key={lobby.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid var(--border-muted)', borderLeft: `4px solid ${lobby.status === 'PLAYING' ? '#9ece6a' : '#7aa2f7'}` }}>
                   <div>
                     <div className={styles.cardHeader}>
                       <span className={styles.modeBadge} style={{ backgroundColor: lobby.status === 'PLAYING' ? '#28a745' : 'var(--primary-blue)' }}>
