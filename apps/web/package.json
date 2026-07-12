@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "mkdir -p node_modules && cp -r ../../node_modules/@livekit node_modules/ 2>/dev/null; cp -r ../../node_modules/livekit-client node_modules/ 2>/dev/null; cp -r ../../node_modules/livekit-server-sdk node_modules/ 2>/dev/null; exit 0",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint"
