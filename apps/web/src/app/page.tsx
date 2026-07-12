@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from './page.module.css';
 import VoiceRoom from './components/VoiceRoom';
-import NavHeader from '@/components/NavHeader';
+import BotInfo from '@/components/BotInfo';
 import { useAuth } from '@/lib/AuthContext';
 import { IconGlobe, IconAlertTriangle, IconTrophy, IconSwords, IconTrash2, IconCheck, IconMic } from '@/components/Icons';
 
@@ -41,7 +41,6 @@ export default function Home() {
 
   const [showForm, setShowForm] = useState(false);
   const [formRiotId, setFormRiotId] = useState('');
-  const [formDiscordId, setFormDiscordId] = useState('');
   const [formGameMode, setFormGameMode] = useState('Competitive');
   const [formMinRank, setFormMinRank] = useState('Diamond');
   const [formDesc, setFormDesc] = useState('');
@@ -50,7 +49,6 @@ export default function Home() {
   useEffect(() => {
     if (session) {
       setFormRiotId(session.riotId || '');
-      setFormDiscordId(session.id || '');
     }
   }, [session]);
 
@@ -111,10 +109,6 @@ export default function Home() {
       alert('Riot ID 格式必須包含 # (例如: TenZ#NA1)');
       return;
     }
-    if (!formDiscordId) {
-      alert('請輸入 Discord ID');
-      return;
-    }
 
     setSubmitting(true);
     try {
@@ -123,7 +117,6 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           captainName: formRiotId,
-          discordId: formDiscordId,
           gameMode: formGameMode,
           minRank: formMinRank,
           description: formDesc,
@@ -163,7 +156,7 @@ export default function Home() {
 
       const data = await res.json();
       if (res.ok) {
-        alert('成功加入隊伍！已同步至 Discord 卡片！');
+        alert('成功加入隊伍！');
         fetchLobbies();
       } else {
         alert(`無法加入房間: ${data.error}`);
@@ -211,7 +204,6 @@ export default function Home() {
 
   return (
     <div className="container">
-      <NavHeader />
 
       {/* Hero Section */}
       <section className={styles.hero}>
@@ -219,13 +211,13 @@ export default function Home() {
           Find Your Perfect <span className={styles.heroHighlight}>Squad</span>
         </h1>
         <p className={styles.heroSubtitle}>
-          特戰英豪跨伺服器智慧組隊平台。透過真實戰績驗證與跨群信用評分，一鍵媒合神隊友，告別毒瘤與隨機配對惡夢。
+          特戰英豪獨立組隊平台。透過真實戰績驗證與信用評分，一鍵媒合神隊友，內建語音系統，不用跳轉任何軟體。
         </p>
         <div className={styles.heroButtons}>
           <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
-            {showForm ? '關閉建立面板' : <><IconGlobe /> 網頁直接開房間</>}
+            {showForm ? '關閉建立面板' : <><IconGlobe /> 開房間</>}
           </button>
-          <a href="/api/auth/login" className="btn-secondary">Discord 帳號登入</a>
+          <a href="/api/auth/login" className="btn-secondary">登入 / LOGIN</a>
         </div>
       </section>
 
@@ -247,13 +239,12 @@ export default function Home() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', color: 'var(--text-secondary)' }}>Discord 使用者 ID</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', color: 'var(--text-secondary)' }}>使用者 ID</label>
                 <input
                   type="text"
-                  placeholder="23456789012345"
-                  value={formDiscordId}
-                  onChange={(e) => setFormDiscordId(e.target.value)}
-                  required
+                  placeholder="使用者 ID"
+                  value={session?.id || ''}
+                  disabled
                   style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--border-color)', borderRadius: '4px', outline: 'none' }}
                 />
               </div>
@@ -330,7 +321,7 @@ export default function Home() {
         {/* Loading and Error States */}
         {loading && lobbies.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-            正在同步 Riot 與 Discord 組隊大廳資料中...
+            正在同步組隊大廳資料...
           </div>
         )}
 
@@ -347,7 +338,7 @@ export default function Home() {
               <IconAlertTriangle /> 目前沒有活躍的揪團隊伍
             </h3>
             <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 24px', fontSize: '0.95rem' }}>
-              現在大廳內空空如也。請點擊上方按鈕在網頁直接發起隊伍，或使用 Discord 機器人在您的伺服器輸入 <strong>/create</strong> 快速建立第一個戰術組隊！
+               現在大廳內空空如也。點擊上方按鈕在網頁直接發起隊伍，快速建立第一個戰術組隊！
             </p>
           </div>
         )}
@@ -424,26 +415,7 @@ export default function Home() {
                         <VoiceRoom lobbyId={lobby.id} session={session} />
                       )}
 
-                      {/* Member Voice Room Access Link */}
-                      {isUserInLobby && lobby.status === 'PLAYING' && lobby.voiceChannelId && (
-                        <a 
-                          href={`https://discord.com/channels/${lobby.discordGuildId}/${lobby.voiceChannelId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn-primary"
-                          style={{ 
-                            padding: '10px', 
-                            fontSize: '0.85rem', 
-                            justifyContent: 'center', 
-                            backgroundColor: '#28a745',
-                            boxShadow: '0 0 10px rgba(40, 167, 69, 0.4)',
-                            textAlign: 'center',
-                            display: 'block'
-                          }}
-                        >
-                          <IconMic /> 進入 Discord 戰術語音房
-                        </a>
-                      )}
+
 
                       {/* Standard Join Button (only shown for open lobbies when not joined) */}
                       {!isCaptain && lobby.status === 'OPEN' && (
@@ -519,6 +491,7 @@ export default function Home() {
           </div>
         )}
       </section>
+      <BotInfo />
     </div>
   );
 }

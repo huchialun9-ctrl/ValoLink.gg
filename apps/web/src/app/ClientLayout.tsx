@@ -2,17 +2,15 @@
 
 import React from 'react';
 import { AuthProvider } from '@/lib/AuthContext';
-import { usePathname } from 'next/navigation';
+import Sidebar from '@/components/Sidebar';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isPlayer = pathname.startsWith('/player/');
-
   return (
     <AuthProvider>
-      <div className="content-overlay">
+      <Sidebar />
+      <main style={{ marginLeft: 'var(--sidebar-width)', minHeight: '100vh' }}>
         {children}
-      </div>
+      </main>
     </AuthProvider>
   );
 }

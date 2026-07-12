@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from '../page.module.css';
-import NavHeader from '@/components/NavHeader';
 import { IconCheck, IconXCircle, IconShield, IconAlertTriangle, IconClipboardList, IconWrench, IconSave, IconSettings, IconZap, IconMegaphone } from '@/components/Icons';
 
 interface Config {
@@ -96,7 +95,7 @@ export default function AdminPage() {
     <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '12px', color: 'var(--accent-red)' }}><IconXCircle /> 權限不足</h2>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
-        您必須是 Discord 伺服器管理員才能存取此頁面
+        您必須是管理員才能存取此頁面
       </p>
       <Link href="/" className="btn-secondary">返回大廳</Link>
     </div>
@@ -104,8 +103,6 @@ export default function AdminPage() {
 
   return (
     <div className="container" style={{ paddingTop: '24px', paddingBottom: '80px' }}>
-      <NavHeader badge="管理員面板" />
-
       <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: '32px 0 8px' }}>
         <IconSettings /> 伺服器管理員面板
       </h1>

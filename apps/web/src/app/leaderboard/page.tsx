@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from '../page.module.css';
-import NavHeader from '@/components/NavHeader';
 import { useAuth } from '@/lib/AuthContext';
+import { IconTrophy, IconCrown, IconSearch, IconBarChart3, IconAlertTriangle, IconAward, IconGamepad2 } from '@/components/Icons';
 
 interface LeaderboardUser {
   rank: number;
@@ -46,12 +46,10 @@ export default function Leaderboard() {
 
   return (
     <div className="container">
-      <NavHeader />
-
       {/* Hero Header */}
       <section className={styles.hero}>
         <h1 className={styles.heroTitle}>
-          🏆 ValoScore <span className={styles.heroHighlight}>信用排行榜</span>
+          <IconTrophy size={24} /> ValoScore <span className={styles.heroHighlight}>信用排行榜</span>
         </h1>
         <p className={styles.heroSubtitle}>
           基於賽後匿名互評機制的信用積分系統。系統將優先保護高信用分玩家，杜絕惡意擺爛與言語暴力。
@@ -61,37 +59,38 @@ export default function Leaderboard() {
       {/* Leaderboard Table Section */}
       <section style={{ paddingBottom: '80px' }}>
         <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>👑 頂尖信用玩家</h2>
-          <div>
+          <h2 className={styles.sectionTitle}><IconCrown /> 頂尖信用玩家</h2>
+          <div style={{ position: 'relative' }}>
+            <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)', pointerEvents: 'none' }}><IconSearch size={14} /></span>
             <input
               type="text"
-              placeholder="🔍 搜尋 Riot ID..."
+              placeholder="搜尋 Riot ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-field"
-              style={{ width: '240px' }}
+              style={{ width: '240px', paddingLeft: '30px' }}
             />
           </div>
         </div>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-            📊 載入排行榜中...
+            <><IconBarChart3 /> 載入排行榜中...</>
           </div>
         ) : filteredPlayers.length === 0 ? (
           <div className="glass-card" style={{ textAlign: 'center', padding: '40px' }}>
-            😕 沒有找到相符的信用玩家紀錄。
+            <><IconAlertTriangle /> 沒有找到相符的信用玩家紀錄。</>
           </div>
         ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>🏅 排名</th>
-                  <th>🎮 玩家 Riot ID</th>
-                  <th>🆔 Discord ID</th>
-                  <th>🏆 遊戲牌位</th>
-                  <th style={{ textAlign: 'right' }}>⭐ ValoScore</th>
+                  <th><IconAward /> 排名</th>
+                  <th><IconGamepad2 /> 玩家 Riot ID</th>
+                  <th>使用者 ID</th>
+                  <th><IconTrophy /> 遊戲牌位</th>
+                  <th style={{ textAlign: 'right' }}>ValoScore</th>
                 </tr>
               </thead>
               <tbody>

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { use } from 'react';
 import styles from '../../page.module.css';
-import NavHeader from '@/components/NavHeader';
 import { IconAlertTriangle, IconBarChart3, IconThumbsUp, IconThumbsDown, IconMoon, IconTrendingUp, IconGamepad2, IconCircle } from '@/components/Icons';
 
 interface PlayerProfile {
@@ -100,7 +99,6 @@ export default function PlayerPage({ params }: { params: Promise<{ discordId: st
 
   return (
     <div className="container" style={{ paddingTop: '32px', paddingBottom: '80px' }}>
-      <NavHeader hideAuth />
 
       {/* Hero Card */}
       <div className="glass-card animate-fade-in" style={{ display: 'flex', gap: '32px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '24px' }}>
@@ -117,7 +115,7 @@ export default function PlayerPage({ params }: { params: Promise<{ discordId: st
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '6px' }}>
             <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>
-              {player.riotId || `Discord:${player.id}`}
+              {player.riotId || player.id}
             </h1>
             {player.rank && (
               <span className="badge badge-cyan">{player.rank}</span>
@@ -127,7 +125,7 @@ export default function PlayerPage({ params }: { params: Promise<{ discordId: st
             )}
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-            Discord ID: {player.id} · 加入時間: {player.memberSince}
+            使用者 ID: {player.id} · 加入時間: {player.memberSince}
           </p>
         </div>
 

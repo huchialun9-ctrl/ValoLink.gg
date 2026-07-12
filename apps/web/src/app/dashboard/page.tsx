@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from '../page.module.css';
-import NavHeader from '@/components/NavHeader';
 import { useAuth } from '@/lib/AuthContext';
 import { IconMessageCircle, IconAlertTriangle, IconGamepad2, IconShield, IconCheck, IconHandshake, IconThumbsUp, IconThumbsDown, IconMoon } from '@/components/Icons';
 
@@ -203,13 +202,13 @@ export default function Dashboard() {
       <div className="container" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', justifyContent: 'center', alignItems: 'center' }}>
         <div className="glass-card" style={{ maxWidth: '450px', width: '100%', textAlign: 'center', padding: '40px' }}>
           <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '8px', letterSpacing: '-0.5px' }}>
-            VALOLINK<span className={styles.logoDot}>.GG</span>
+            VALOLINK<span style={{ color: 'var(--accent-blue)' }}>.GG</span>
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '32px' }}>
-            請先使用 Discord 帳號登入，以同步您的伺服器列表、揪團紀錄與個人戰績面板。
+            請先登入，以同步您的揪團紀錄與個人戰績面板。
           </p>
           <a href="/api/auth/login" className="btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', fontSize: '1rem', padding: '12px' }}>
-            <IconMessageCircle /> 經由 Discord 登入 (OAuth2)
+            <IconMessageCircle /> 登入 / LOGIN
           </a>
           <div style={{ marginTop: '20px' }}>
             <Link href="/" style={{ color: 'var(--primary-blue)', fontSize: '0.85rem' }}>返回組隊大廳</Link>
@@ -221,8 +220,6 @@ export default function Dashboard() {
 
   return (
     <div className="container">
-      <NavHeader />
-
       {loadingData || !stats ? (
         <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-secondary)' }}>
           同步您的特戰戰績與對局記錄中...
@@ -252,7 +249,7 @@ export default function Dashboard() {
                 )}
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
-                Discord 帳號: @{session.username} (ID: {session.id})
+                帳號: @{session.username} (ID: {session.id})
               </p>
             </div>
             
