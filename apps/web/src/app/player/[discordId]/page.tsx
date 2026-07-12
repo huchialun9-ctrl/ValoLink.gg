@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { use } from 'react';
 import styles from '../../page.module.css';
+import { IconAlertTriangle, IconBarChart3, IconThumbsUp, IconThumbsDown, IconMoon, IconTrendingUp, IconGamepad2, IconCircle } from '@/components/Icons';
 
 interface PlayerProfile {
   id: string;
@@ -46,7 +47,11 @@ export default function PlayerPage({ params }: { params: Promise<{ discordId: st
   }, [discordId]);
 
   const scoreColor = (s: number) => s >= 90 ? '#4eff8a' : s >= 60 ? '#e5c158' : '#ff4655';
-  const scoreLabel = (s: number) => s >= 90 ? '🟢 優良信用' : s >= 60 ? '🟡 一般信用' : '🔴 不良信用';
+  const ScoreLabel = ({ s }: { s: number }) => {
+    if (s >= 90) return <><IconCircle color="#4eff8a" /> 優良信用</>;
+    if (s >= 60) return <><IconCircle color="#e5c158" /> 一般信用</>;
+    return <><IconCircle color="#ff4655" /> 不良信用</>;
+  };
 
   const renderChart = () => {
     if (!player || player.creditHistory.length < 2) return null;
@@ -128,7 +133,7 @@ export default function PlayerPage({ params }: { params: Promise<{ discordId: st
               <span className="badge badge-cyan">{player.rank}</span>
             )}
             {player.isSuspicious && (
-              <span className="badge badge-red">⚠️ 可疑行為</span>
+              <span className="badge badge-red"><IconAlertTriangle /> 可疑行為</span>
             )}
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
@@ -145,7 +150,7 @@ export default function PlayerPage({ params }: { params: Promise<{ discordId: st
             {player.valoScore}
             <span style={{ fontSize: '1rem', color: 'var(--text-secondary)', fontWeight: 400 }}> pts</span>
           </div>
-          <div style={{ fontSize: '0.8rem', marginTop: '4px' }}>{scoreLabel(player.valoScore)}</div>
+          <div style={{ fontSize: '0.8rem', marginTop: '4px' }}><ScoreLabel s={player.valoScore} /></div>
         </div>
       </div>
 
@@ -154,16 +159,16 @@ export default function PlayerPage({ params }: { params: Promise<{ discordId: st
 
           {/* Rating Stats */}
           <div className="glass-card animate-fade-in">
-            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px' }}>📊 隊友評分統計</h3>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px' }}><IconBarChart3 /> 隊友評分統計</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
               {[
-                { label: '👍 友善', count: player.ratingStats.goodCount, color: '#4eff8a' },
-                { label: '👎 嘴砲', count: player.ratingStats.toxicCount, color: '#ff4655' },
-                { label: '💤 掛網', count: player.ratingStats.afkCount, color: '#8b949e' },
+                { label: '友善', count: player.ratingStats.goodCount, color: '#4eff8a', icon: <IconThumbsUp /> },
+                { label: '嘴砲', count: player.ratingStats.toxicCount, color: '#ff4655', icon: <IconThumbsDown /> },
+                { label: '掛網', count: player.ratingStats.afkCount, color: '#8b949e', icon: <IconMoon /> },
               ].map(s => (
                 <div key={s.label} style={{ background: 'var(--bg-secondary)', borderRadius: '6px', padding: '16px', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.8rem', fontWeight: 800, color: s.color }}>{s.count}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>{s.label}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>{s.icon} {s.label}</div>
                 </div>
               ))}
             </div>
@@ -174,7 +179,7 @@ export default function PlayerPage({ params }: { params: Promise<{ discordId: st
 
           {/* ValoScore Chart */}
           <div className="glass-card animate-fade-in">
-            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px' }}>📈 信用分歷史走勢</h3>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px' }}><IconTrendingUp /> 信用分歷史走勢</h3>
             {player.creditHistory.length < 2 ? (
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>目前尚無足夠資料繪製走勢圖</p>
             ) : renderChart()}
@@ -183,7 +188,7 @@ export default function PlayerPage({ params }: { params: Promise<{ discordId: st
 
         {/* Recent Squads */}
         <div className="glass-card animate-fade-in">
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px' }}>🎮 近期揪團紀錄</h3>
+          <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px' }}><IconGamepad2 /> 近期揪團紀錄</h3>
           {player.recentSquads.length === 0 ? (
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>尚無揪團紀錄</p>
           ) : (

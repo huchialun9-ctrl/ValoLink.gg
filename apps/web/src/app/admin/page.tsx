@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from '../page.module.css';
+import { IconCheck, IconXCircle, IconShield, IconAlertTriangle, IconClipboardList, IconWrench, IconSave, IconSettings, IconZap, IconMegaphone } from '@/components/Icons';
 
 interface Config {
   guildId: string;
@@ -65,8 +66,8 @@ export default function AdminPage() {
         body: JSON.stringify({ action: 'update_config', ...editConfig })
       });
       const data = await res.json();
-      if (data.success) alert('✅ 設定已儲存！');
-      else alert('❌ 儲存失敗: ' + data.error);
+      if (data.success) alert('設定已儲存！');
+      else alert('儲存失敗: ' + data.error);
     } finally {
       setSaving(false);
     }
@@ -80,7 +81,7 @@ export default function AdminPage() {
     });
     if ((await res.json()).success) {
       setSuspiciousUsers(prev => prev.filter(u => u.id !== userId));
-      alert('✅ 已清除可疑標記');
+      alert('已清除可疑標記');
     }
   };
 
@@ -92,7 +93,7 @@ export default function AdminPage() {
 
   if (unauthorized) return (
     <div className="container" style={{ padding: '100px 0', textAlign: 'center' }}>
-      <h2 style={{ fontSize: '1.5rem', marginBottom: '12px', color: 'var(--accent-red)' }}>❌ 權限不足</h2>
+      <h2 style={{ fontSize: '1.5rem', marginBottom: '12px', color: 'var(--accent-red)' }}><IconXCircle /> 權限不足</h2>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
         您必須是 Discord 伺服器管理員才能存取此頁面
       </p>
@@ -113,12 +114,12 @@ export default function AdminPage() {
           <Link href="/dashboard" className={styles.navLink}>個人控制台</Link>
         </nav>
         <span style={{ background: 'rgba(255,70,85,0.15)', border: '1px solid rgba(255,70,85,0.4)', color: 'var(--accent-red)', padding: '4px 12px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 700 }}>
-          🛡️ 管理員面板
+          <IconShield /> 管理員面板
         </span>
       </header>
 
       <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: '32px 0 8px' }}>
-        ⚙️ 伺服器管理員面板
+        <IconSettings /> 伺服器管理員面板
       </h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
         管理 ValoLink.gg 機器人設定、信用門檻與可疑用戶
@@ -128,7 +129,7 @@ export default function AdminPage() {
 
         {/* Server Config Editor */}
         <div className="glass-card">
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '20px' }}>🔧 伺服器設定</h3>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '20px' }}><IconWrench /> 伺服器設定</h3>
           {editConfig ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
@@ -140,7 +141,7 @@ export default function AdminPage() {
               </div>
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                  🛡️ 最低信用門檻 (ValoScore)
+                  <IconShield /> 最低信用門檻 (ValoScore)
                 </label>
                 <input className="input-field" type="number" min={0} max={100}
                   value={editConfig.minValoScore}
@@ -148,7 +149,7 @@ export default function AdminPage() {
               </div>
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>
-                  📢 揪團公告頻道 ID
+                  <IconMegaphone /> 揪團公告頻道 ID
                 </label>
                 <input className="input-field" value={editConfig.lobbyChannelId || ''}
                   placeholder="Discord Channel ID"
@@ -158,11 +159,11 @@ export default function AdminPage() {
                 <input type="checkbox" id="autoVoice" checked={editConfig.autoVoice}
                   onChange={e => setEditConfig({ ...editConfig, autoVoice: e.target.checked })} />
                 <label htmlFor="autoVoice" style={{ fontSize: '0.9rem', cursor: 'pointer' }}>
-                  ⚡ 自動建立語音房
+                  <IconZap /> 自動建立語音房
                 </label>
               </div>
               <button className="btn-primary" onClick={handleSaveConfig} disabled={saving}>
-                {saving ? '儲存中...' : '💾 儲存設定'}
+                {saving ? '儲存中...' : <><IconSave /> 儲存設定</>}
               </button>
             </div>
           ) : (
@@ -173,9 +174,9 @@ export default function AdminPage() {
         {/* Suspicious Users */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className="glass-card">
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px' }}>⚠️ 疑似刷分用戶</h3>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px' }}><IconAlertTriangle /> 疑似刷分用戶</h3>
             {suspiciousUsers.length === 0 ? (
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>目前沒有被標記的可疑用戶 ✅</p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>目前沒有被標記的可疑用戶 <IconCheck /></p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {suspiciousUsers.map(u => (
@@ -200,7 +201,7 @@ export default function AdminPage() {
 
           {/* Recent Reputation Logs */}
           <div className="glass-card">
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px' }}>📋 最近信用事件</h3>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px' }}><IconClipboardList /> 最近信用事件</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '320px', overflowY: 'auto' }}>
               {recentLogs.map(log => (
                 <div key={log.id} style={{

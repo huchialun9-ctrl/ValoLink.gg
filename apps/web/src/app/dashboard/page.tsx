@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from '../page.module.css';
+import { IconMessageCircle, IconAlertTriangle, IconGamepad2, IconShield, IconCheck, IconHandshake, IconThumbsUp, IconThumbsDown, IconMoon } from '@/components/Icons';
 
 interface Session {
   id: string;
@@ -40,18 +41,15 @@ export default function Dashboard() {
   const [session, setSession] = useState<Session | null>(null);
   const [loadingSession, setLoadingSession] = useState(true);
   
-  // Dashboard Data
   const [stats, setStats] = useState<any>(null);
   const [squads, setSquads] = useState<HistoricalSquad[]>([]);
   const [teammates, setTeammates] = useState<Teammate[]>([]);
   const [history, setHistory] = useState<CreditPoint[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
-  // Form states for Riot ID binding
   const [riotInput, setRiotInput] = useState('');
   const [linking, setLinking] = useState(false);
 
-  // Rating actions states
   const [ratingTargetId, setRatingTargetId] = useState<string | null>(null);
   const [ratingType, setRatingType] = useState<'good' | 'toxic' | 'afk' | null>(null);
   const [submittingRating, setSubmittingRating] = useState(false);
@@ -70,7 +68,6 @@ export default function Dashboard() {
     document.cookie = `user_session=${encodeURIComponent(JSON.stringify(newSession))}; path=/; max-age=${60 * 60 * 24 * 7}; same-site=lax`;
   };
 
-  // Parse cookie on client side
   useEffect(() => {
     const sessionCookie = getCookie('user_session');
     if (sessionCookie) {
@@ -85,7 +82,6 @@ export default function Dashboard() {
     setLoadingSession(false);
   }, []);
 
-  // Fetch stats from database once logged in
   const fetchStats = async () => {
     if (!session) return;
     try {
@@ -129,7 +125,8 @@ export default function Dashboard() {
 
       const data = await res.json();
       if (res.ok) {
-        alert(`成功綁定 Riot ID！已同步分配牌位：${data.rank} ✅`);
+        const rankMsg = data.rank ? `牌位：${data.rank}` : (data.rankError ? data.rankError : '尚未取得牌位');
+        alert(`成功綁定 Riot ID！${rankMsg}`);
         updateSessionCookie({ riotId: data.riotId, rank: data.rank });
         fetchStats();
       } else {
@@ -163,7 +160,7 @@ export default function Dashboard() {
 
       const data = await res.json();
       if (res.ok) {
-        alert('互評提交成功！已影響對方的信用分數與組隊權限！✅');
+        alert('互評提交成功！已影響對方的信用分數與組隊權限！');
         fetchStats();
       } else {
         alert(`評分失敗: ${data.error}`);
@@ -178,7 +175,6 @@ export default function Dashboard() {
     }
   };
 
-  // Render SVG Chart for ValoScore Trend
   const renderTrendChart = () => {
     if (history.length === 0) return null;
 
@@ -186,8 +182,7 @@ export default function Dashboard() {
     const height = 150;
     const padding = 20;
 
-    // Map scores to coordinates
-    const minScore = 30; // Lowest score limit
+    const minScore = 30;
     const maxScore = 100;
     const xStep = (width - padding * 2) / Math.max(history.length - 1, 1);
     
@@ -235,7 +230,6 @@ export default function Dashboard() {
     );
   }
 
-  // Gated Auth Screen
   if (!session) {
     return (
       <div className="container" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', justifyContent: 'center', alignItems: 'center' }}>
@@ -247,7 +241,7 @@ export default function Dashboard() {
             請先使用 Discord 帳號登入，以同步您的伺服器列表、揪團紀錄與個人戰績面板。
           </p>
           <a href="/api/auth/login" className="btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', fontSize: '1rem', padding: '12px' }}>
-            💬 經由 Discord 登入 (OAuth2)
+            <IconMessageCircle /> 經由 Discord 登入 (OAuth2)
           </a>
           <div style={{ marginTop: '20px' }}>
             <Link href="/" style={{ color: 'var(--primary-blue)', fontSize: '0.85rem' }}>返回組隊大廳</Link>
@@ -299,7 +293,7 @@ export default function Dashboard() {
                   </span>
                 ) : (
                   <span style={{ background: '#fff8f0', color: '#d97706', border: '1px solid #fde68a', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
-                    ⚠️ 未綁定牌位
+                    <IconAlertTriangle /> 未綁定牌位
                   </span>
                 )}
               </div>
@@ -339,14 +333,14 @@ export default function Dashboard() {
           {/* KPI Row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
             <div className="glass-card" style={{ padding: '20px' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>🎮 累計組隊場次</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}><IconGamepad2 /> 累計組隊場次</span>
               <h3 style={{ fontSize: '2rem', marginTop: '8px', fontWeight: 700 }}>
                 {stats.squadCount}
                 <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}> 場對局</span>
               </h3>
             </div>
             <div className="glass-card" style={{ padding: '20px' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>🛡️ 隊友平均信用度</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}><IconShield /> 隊友平均信用度</span>
               <h3 style={{ fontSize: '2rem', marginTop: '8px', fontWeight: 700 }}>
                 {stats.averageTeammateScore !== null
                   ? <>{stats.averageTeammateScore}<span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}> pts</span></>
@@ -355,7 +349,7 @@ export default function Dashboard() {
               </h3>
             </div>
             <div className="glass-card" style={{ padding: '20px' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}>✅ 已完成對局</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase' }}><IconCheck /> 已完成對局</span>
               <h3 style={{ fontSize: '2rem', marginTop: '8px', fontWeight: 700 }}>
                 {stats.finishedSquads ?? 0}
                 <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '500' }}> 場</span>
@@ -369,7 +363,7 @@ export default function Dashboard() {
             {/* Left Side: Chart & Matches */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
               <div className="glass-card">
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>🛡️ ValoScore 信用分歷史走勢</h3>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}><IconShield /> ValoScore 信用分歷史走勢</h3>
                 {renderTrendChart()}
               </div>
 
@@ -419,7 +413,7 @@ export default function Dashboard() {
 
             {/* Right Side: Teammates Met with rating options */}
             <div className="glass-card">
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}>🤝 合作過的隊友行為互評</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px' }}><IconHandshake /> 合作過的隊友行為互評</h3>
               {teammates.length === 0 ? (
                 <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>目前尚未有任何共同對局玩家。</div>
               ) : (
@@ -445,7 +439,7 @@ export default function Dashboard() {
                           className="btn-primary"
                           style={{ padding: '4px', fontSize: '0.75rem', justifyContent: 'center', backgroundColor: '#28a745' }}
                         >
-                          {submittingRating && ratingTargetId === t.id && ratingType === 'good' ? '...' : '👍 友善'}
+                          {submittingRating && ratingTargetId === t.id && ratingType === 'good' ? '...' : <><IconThumbsUp /> 友善</>}
                         </button>
                         <button
                           onClick={() => handleRateTeammate(t.id, 'toxic')}
@@ -453,7 +447,7 @@ export default function Dashboard() {
                           className="btn-secondary"
                           style={{ padding: '4px', fontSize: '0.75rem', justifyContent: 'center', color: '#dc3545', borderColor: '#dc3545' }}
                         >
-                          {submittingRating && ratingTargetId === t.id && ratingType === 'toxic' ? '...' : '👎 嘴砲'}
+                          {submittingRating && ratingTargetId === t.id && ratingType === 'toxic' ? '...' : <><IconThumbsDown /> 嘴砲</>}
                         </button>
                         <button
                           onClick={() => handleRateTeammate(t.id, 'afk')}
@@ -461,7 +455,7 @@ export default function Dashboard() {
                           className="btn-secondary"
                           style={{ padding: '4px', fontSize: '0.75rem', justifyContent: 'center', color: '#6c757d', borderColor: '#6c757d' }}
                         >
-                          {submittingRating && ratingTargetId === t.id && ratingType === 'afk' ? '...' : '💤 掛網'}
+                          {submittingRating && ratingTargetId === t.id && ratingType === 'afk' ? '...' : <><IconMoon /> 掛網</>}
                         </button>
                       </div>
                     </div>

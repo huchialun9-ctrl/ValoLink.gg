@@ -5,12 +5,10 @@ export const dynamic = 'force-dynamic';
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
-/**
- * Fetches real Valorant rank via Riot Account API + HenrikDev proxy.
- * Returns null if lookup fails — never returns fake data.
- */
-async function fetchRealRank(riotId: string): Promise<string | null> {
-  if (!RIOT_API_KEY || !RIOT_API_KEY.startsWith('RGAPI-')) return null;
+async function fetchRealRank(riotId: string): Promise<{ rank: string | null; error?: string }> {
+  if (!RIOT_API_KEY || !RIOT_API_KEY.startsWith('RGAPI-')) {
+    return { rank: null, error: 'RIOT_API_KEY 未設定或格式不正確' };
+  }
 
   try {
     const [name, tag] = riotId.split('#');
@@ -20,7 +18,12 @@ async function fetchRealRank(riotId: string): Promise<string | null> {
       { headers: { 'X-Riot-Token': RIOT_API_KEY } }
     );
 
-    if (!accountRes.ok) return null;
+    if (accountRes.status === 404) {
+      return { rank: null, error: '找不到此 Riot 帳號，請確認 ID 是否正確' };
+    }
+    if (!accountRes.ok) {
+      return { rank: null, error: 'Riot API 帳號查詢失敗 (HTTP ' + accountRes.status + ')' };
+    }
 
     const { puuid } = await accountRes.json();
 
@@ -29,12 +32,18 @@ async function fetchRealRank(riotId: string): Promise<string | null> {
       { headers: { 'Authorization': RIOT_API_KEY } }
     );
 
-    if (!rankRes.ok) return null;
+    if (rankRes.status === 404) {
+      return { rank: null, error: '尚未進行過競技模式，無牌位資料' };
+    }
+    if (!rankRes.ok) {
+      return { rank: null, error: '牌位查詢服務暫時無法使用' };
+    }
 
     const rankData = await rankRes.json();
-    return rankData?.data?.currenttierpatched || null;
-  } catch {
-    return null;
+    const tier = rankData?.data?.currenttierpatched;
+    return { rank: tier || null, error: tier ? undefined : '取得牌位資料為空' };
+  } catch (err) {
+    return { rank: null, error: '連線至 Riot API 失敗，請稍後再試' };
   }
 }
 
@@ -50,25 +59,22 @@ export async function POST(request: Request) {
       );
     }
 
-    // Fetch real rank — null means unverified, NOT fabricated
-    const resolvedRank = await fetchRealRank(riotId);
+    const { rank, error: rankError } = await fetchRealRank(riotId);
 
     const user = await prisma.user.update({
       where: { id: userId },
-      data: {
-        riotId,
-        rank: resolvedRank  // null = 未能驗證牌位
-      }
+      data: { riotId, rank }
     });
 
     return NextResponse.json({
       success: true,
       riotId: user.riotId,
       rank: user.rank,
-      rankVerified: resolvedRank !== null
+      rankVerified: rank !== null,
+      rankError: rankError || null
     });
   } catch (error) {
     console.error('[link] Failed to link Riot ID:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: '伺服器內部錯誤' }, { status: 500 });
   }
 }

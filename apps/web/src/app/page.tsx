@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from './page.module.css';
+import VoiceRoom from './components/VoiceRoom';
+import { IconGlobe, IconAlertTriangle, IconTrophy, IconSwords, IconTrash2, IconCheck, IconMic } from '@/components/Icons';
 
 interface LobbyMember {
   id: string;
@@ -43,10 +45,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Authentication State
   const [session, setSession] = useState<Session | null>(null);
 
-  // Form States
   const [showForm, setShowForm] = useState(false);
   const [formRiotId, setFormRiotId] = useState('');
   const [formDiscordId, setFormDiscordId] = useState('');
@@ -55,7 +55,6 @@ export default function Home() {
   const [formDesc, setFormDesc] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Parse session cookie on client load
   useEffect(() => {
     const getCookie = (name: string) => {
       const value = `; ${document.cookie}`;
@@ -69,7 +68,6 @@ export default function Home() {
       try {
         const parsed = JSON.parse(sessionCookie);
         setSession(parsed);
-        // Pre-fill form fields with session data if logged in
         setFormRiotId(parsed.riotId || '');
         setFormDiscordId(parsed.id || '');
       } catch (err) {
@@ -78,7 +76,6 @@ export default function Home() {
     }
   }, []);
 
-  // Fetch real-time active lobbies from the database via API endpoint
   const fetchLobbies = async () => {
     try {
       const res = await fetch('/api/lobbies');
@@ -96,7 +93,6 @@ export default function Home() {
     }
   };
 
-  // Real-time lobby updates via SSE
   useEffect(() => {
     let es: EventSource;
     let retryTimeout: ReturnType<typeof setTimeout>;
@@ -119,7 +115,6 @@ export default function Home() {
 
       es.onerror = () => {
         es.close();
-        // Retry connection after 5 seconds
         retryTimeout = setTimeout(connect, 5000);
         setError('即時連線中斷，嘗試重連...');
       };
@@ -190,7 +185,7 @@ export default function Home() {
 
       const data = await res.json();
       if (res.ok) {
-        alert('成功加入隊伍！已同步至 Discord 卡片！✅');
+        alert('成功加入隊伍！已同步至 Discord 卡片！');
         fetchLobbies();
       } else {
         alert(`無法加入房間: ${data.error}`);
@@ -273,7 +268,7 @@ export default function Home() {
         </p>
         <div className={styles.heroButtons}>
           <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
-            {showForm ? '關閉建立面板' : '🌐 網頁直接開房間'}
+            {showForm ? '關閉建立面板' : <><IconGlobe /> 網頁直接開房間</>}
           </button>
           <a href="/api/auth/login" className="btn-secondary">Discord 帳號登入</a>
         </div>
@@ -394,7 +389,7 @@ export default function Home() {
         {!loading && !error && filteredLobbies.length === 0 && (
           <div className="glass-card" style={{ textAlign: 'center', padding: '60px 20px' }}>
             <h3 style={{ marginBottom: '12px', color: 'var(--primary-blue)', fontSize: '1.3rem', fontWeight: 600 }}>
-              ⚠️ 目前沒有活躍的揪團隊伍
+              <IconAlertTriangle /> 目前沒有活躍的揪團隊伍
             </h3>
             <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto 24px', fontSize: '0.95rem' }}>
               現在大廳內空空如也。請點擊上方按鈕在網頁直接發起隊伍，或使用 Discord 機器人在您的伺服器輸入 <strong>/create</strong> 快速建立第一個戰術組隊！
@@ -417,7 +412,7 @@ export default function Home() {
                       <span className={styles.modeBadge} style={{ backgroundColor: lobby.status === 'PLAYING' ? '#28a745' : 'var(--primary-blue)' }}>
                         {lobby.mode} {lobby.status === 'PLAYING' && '• 進行中'}
                       </span>
-                      <span className={styles.rankLimit}>🏆 {lobby.minRank} +</span>
+                      <span className={styles.rankLimit}><IconTrophy /> {lobby.minRank} +</span>
                     </div>
                     <p className={styles.cardDesc}>{lobby.description}</p>
                   </div>
@@ -446,27 +441,32 @@ export default function Home() {
                             className="btn-primary" 
                             style={{ padding: '8px', fontSize: '0.85rem', justifyContent: 'center', backgroundColor: '#28a745' }}
                           >
-                            ⚔️ 出發開打
+                            <IconSwords /> 出發開打
                           </button>
                           <button 
                             onClick={() => handleCaptainAction(lobby.id, 'close')}
                             className="btn-secondary" 
                             style={{ padding: '8px', fontSize: '0.85rem', justifyContent: 'center' }}
                           >
-                            🗑️ 解散房間
+                            <IconTrash2 /> 解散房間
                           </button>
                         </div>
                       )}
 
                       {/* Captain Controls (when already Playing) */}
                       {isCaptain && lobby.status === 'PLAYING' && (
-                        <button 
-                          onClick={() => handleCaptainAction(lobby.id, 'close')}
-                          className="btn-secondary" 
-                          style={{ padding: '8px', fontSize: '0.85rem', justifyContent: 'center', width: '100%' }}
-                        >
-                          🗑️ 結束並關閉房間
-                        </button>
+                          <button 
+                            onClick={() => handleCaptainAction(lobby.id, 'close')}
+                            className="btn-secondary" 
+                            style={{ padding: '8px', fontSize: '0.85rem', justifyContent: 'center', width: '100%' }}
+                          >
+                            <IconTrash2 /> 結束並關閉房間
+                          </button>
+                      )}
+
+                      {/* Web Voice Chat (available to all lobby members) */}
+                      {(isUserInLobby || isCaptain) && (
+                        <VoiceRoom lobbyId={lobby.id} session={session} />
                       )}
 
                       {/* Member Voice Room Access Link */}
@@ -486,7 +486,7 @@ export default function Home() {
                             display: 'block'
                           }}
                         >
-                          🎙️ 進入 Discord 戰術語音房
+                          <IconMic /> 進入 Discord 戰術語音房
                         </a>
                       )}
 
@@ -525,7 +525,7 @@ export default function Home() {
                             backgroundColor: '#f3f4f6'
                           }}
                         >
-                          ⚔️ 戰局進行中 (Playing)
+                          <IconSwords /> 戰局進行中 (Playing)
                         </button>
                       )}
                     </div>
@@ -549,7 +549,7 @@ export default function Home() {
                                 <span style={{ color: m.inVoice ? '#238636' : 'var(--text-primary)', fontWeight: m.inVoice ? '600' : 'normal' }}>
                                   {m.riotId}
                                 </span>
-                                {m.inVoice && <span style={{ fontSize: '0.75rem', color: '#238636', fontWeight: '600' }}>(🎙️ 語音中)</span>}
+                                {m.inVoice && <span style={{ fontSize: '0.75rem', color: '#238636', fontWeight: '600' }}>(<IconMic /> 語音中)</span>}
                               </span>
                               <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>信用: {m.valoScore} pts</span>
                             </div>

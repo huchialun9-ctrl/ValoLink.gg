@@ -112,7 +112,7 @@ export async function POST(request: Request) {
             body: JSON.stringify({
               embeds: [{
                 color: actualDiff > 0 ? 0x4eff8a : 0xff4655,
-                title: '🛡️ ValoLink.gg — 信用分變動通知',
+                title: 'ValoLink.gg — 信用分變動通知',
                 description: `您收到了一筆來自隊友的匿名評分`,
                 fields: [
                   { name: '評分類別', value: desc, inline: true },
