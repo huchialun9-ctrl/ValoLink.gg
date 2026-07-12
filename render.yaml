@@ -4,7 +4,7 @@ services:
     env: node
     repo: https://github.com/huchialun9-ctrl/ValoLink.gg.git
     buildCommand: npm run build:web
-    startCommand: npm run start --workspace=apps/web
+    startCommand: npx prisma@5.22.0 db push --schema=packages/db/prisma/schema.prisma --accept-data-loss && npm run start --workspace=apps/web
     envVars:
       - key: NODE_VERSION
         value: 20
@@ -21,4 +21,6 @@ services:
       - key: DISCORD_TOKEN
         sync: false
       - key: REDIRECT_URI
+        sync: false
+      - key: DATABASE_URL
         sync: false
