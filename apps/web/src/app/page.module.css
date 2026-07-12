@@ -2,163 +2,158 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border-color);
-  background-color: var(--bg-primary);
-  margin-bottom: 32px;
+  height: var(--header-height);
+  border-bottom: 1px solid var(--border-default);
+  background-color: var(--bg-secondary);
+  padding: 0 24px;
+  margin: 0 -24px 24px;
 }
 
 .logo {
   font-weight: 700;
-  font-size: 1.4rem;
+  font-size: 16px;
   color: var(--text-primary);
-  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .logoDot {
-  color: var(--primary-blue);
+  color: var(--accent-blue);
 }
 
 .nav {
   display: flex;
-  gap: 24px;
+  gap: 4px;
 }
 
 .navLink {
   color: var(--text-secondary);
   font-weight: 500;
-  font-size: 0.9rem;
-  transition: color 0.1s ease;
-  padding: 6px 12px;
+  font-size: 14px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
+  transition: color 0.1s ease, background 0.1s ease;
 }
-
 .navLink:hover {
   color: var(--text-primary);
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-hover);
+  text-decoration: none;
 }
 
 .navActive {
   color: var(--text-primary);
-  background-color: var(--bg-secondary);
-  font-weight: 600;
+  background-color: var(--bg-tertiary);
 }
 
 .hero {
-  text-align: left;
-  padding: 40px;
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  margin-bottom: 40px;
-  box-shadow: var(--shadow-sm);
+  padding: 0;
+  margin-bottom: 32px;
 }
 
 .heroTitle {
-  font-size: 2.2rem;
-  font-weight: 700;
-  letter-spacing: -0.8px;
-  margin-bottom: 12px;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
   color: var(--text-primary);
 }
 
 .heroHighlight {
-  color: var(--primary-blue);
+  color: var(--accent-blue);
 }
 
 .heroSubtitle {
   color: var(--text-secondary);
-  font-size: 1.05rem;
-  max-width: 800px;
-  margin-bottom: 24px;
+  font-size: 14px;
+  max-width: 640px;
+  margin-bottom: 20px;
   line-height: 1.6;
 }
 
 .heroButtons {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 .lobbySection {
-  padding: 24px 0 60px;
+  padding: 0 0 60px;
 }
 
 .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .sectionTitle {
-  font-size: 1.3rem;
+  font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: -0.3px;
 }
 
 .filters {
   display: flex;
-  gap: 6px;
-  background-color: #eff1f3;
-  padding: 4px;
+  gap: 4px;
+  background-color: var(--bg-secondary);
+  padding: 3px;
   border-radius: var(--radius-sm);
+  border: 1px solid var(--border-muted);
 }
 
 .filterBtn {
   background: transparent;
   border: none;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 4px;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 12px;
   font-weight: 500;
   transition: all 0.1s ease;
 }
 
 .filterBtnActive, .filterBtn:hover {
-  background: var(--bg-primary);
+  background: var(--bg-inset);
   color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 12px;
 }
 
 .cardHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .modeBadge {
-  background: #ddf4ff;
-  border: 1px solid rgba(9, 105, 218, 0.2);
-  color: var(--primary-blue);
-  padding: 3px 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  background: rgba(88,166,255,0.12);
+  border: 1px solid rgba(88,166,255,0.3);
+  color: var(--accent-blue);
+  padding: 0 8px;
+  height: 22px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 22px;
   border-radius: 20px;
 }
 
 .rankLimit {
-  font-size: 0.8rem;
+  font-size: 12px;
   color: var(--text-secondary);
   font-weight: 500;
 }
 
 .cardDesc {
-  font-size: 0.9rem;
+  font-size: 14px;
   color: var(--text-primary);
-  margin-bottom: 20px;
-  min-height: 40px;
+  margin-bottom: 16px;
   line-height: 1.5;
 }
 
@@ -166,8 +161,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid #f1f2f4;
+  border-top: 1px solid var(--border-muted);
   padding-top: 12px;
+  margin-top: 12px;
 }
 
 .captainInfo {
@@ -177,32 +173,38 @@
 }
 
 .avatarMock {
-  width: 28px;
-  height: 28px;
-  background: #f3f4f6;
+  width: 24px;
+  height: 24px;
+  background: var(--bg-tertiary);
   border-radius: 50%;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-default);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 10px;
   color: var(--text-primary);
+  overflow: hidden;
+}
+.avatarMock img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
 }
 
 .captainName {
-  font-size: 0.85rem;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .captainScore {
-  font-size: 0.75rem;
+  font-size: 12px;
   color: var(--text-secondary);
 }
 
 .memberCount {
-  font-size: 0.85rem;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-secondary);
 }
