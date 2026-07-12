@@ -1,20 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@valolink/db';
-import { jwtVerify } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'valolink-default-secret-change-me');
 const CLIENT_ID = process.env.CLIENT_ID || '';
 const CLIENT_SECRET = process.env.CLIENT_SECRET || '';
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN || '';
-const REDIRECT_URI = (() => {
-  const base = (process.env.REDIRECT_URI || 'http://localhost:3000').replace(/\/+$/, '');
-  return `${base}/api/admin/callback`;
-})();
+
+function getOrigin(req: NextRequest): string {
+  const url = new URL(req.url);
+  return url.origin;
+}
+
+function getRedirectUri(req: NextRequest): string {
+  return `${getOrigin(req)}/api/admin/callback`;
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const code = searchParams.get('code');
   if (!code) return NextResponse.json({ error: '缺少授權碼' }, { status: 400 });
+
+  const origin = getOrigin(req);
+  const redirectUri = getRedirectUri(req);
 
   try {
     const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
@@ -25,7 +31,7 @@ export async function GET(req: NextRequest) {
         client_secret: CLIENT_SECRET,
         grant_type: 'authorization_code',
         code,
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: redirectUri,
         scope: 'identify guilds',
       }),
     });
@@ -37,14 +43,12 @@ export async function GET(req: NextRequest) {
 
     const { access_token } = await tokenRes.json();
 
-    // Fetch user's guilds
     const guildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
       headers: { Authorization: `Bearer ${access_token}` },
     });
     if (!guildsRes.ok) return NextResponse.json({ error: '無法取得伺服器列表' }, { status: 400 });
     const userGuilds: any[] = await guildsRes.json();
 
-    // Fetch user info
     const userRes = await fetch('https://discord.com/api/users/@me', {
       headers: { Authorization: `Bearer ${access_token}` },
     });
@@ -52,7 +56,6 @@ export async function GET(req: NextRequest) {
     const userData = await userRes.json();
     const discordId = userData.id;
 
-    // Fetch bot's guilds
     const botGuildsRes = await fetch('https://discord.com/api/users/@me/guilds', {
       headers: { Authorization: `Bot ${DISCORD_TOKEN}` },
     });
@@ -60,7 +63,6 @@ export async function GET(req: NextRequest) {
     const botGuilds: any[] = await botGuildsRes.json();
     const botGuildIds = new Set(botGuilds.map(g => g.id));
 
-    // Check if user is admin in any guild where bot is also present
     const adminGuild = userGuilds.find(g => {
       const perms = BigInt(g.permissions);
       const isAdmin = (perms & BigInt(8)) === BigInt(8);
@@ -68,21 +70,18 @@ export async function GET(req: NextRequest) {
     });
 
     if (!adminGuild) {
-      // Set admin to false if they no longer qualify
       await prisma.user.update({
         where: { id: discordId },
         data: { isAdmin: false },
       });
-      return NextResponse.redirect(`${REDIRECT_URI}/admin?error=no_admin_guild`);
+      return NextResponse.redirect(`${origin}/admin?error=no_admin_guild`);
     }
 
-    // Set admin to true
     await prisma.user.update({
       where: { id: discordId },
       data: { isAdmin: true },
     });
 
-    // Also create/update ServerConfig for this guild
     await prisma.serverConfig.upsert({
       where: { guildId: adminGuild.id },
       update: {},
@@ -95,7 +94,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.redirect(`${REDIRECT_URI}/admin?verified=true`);
+    return NextResponse.redirect(`${origin}/admin?verified=true`);
   } catch (err: any) {
     return NextResponse.json({ error: err.message || '驗證失敗' }, { status: 500 });
   }
