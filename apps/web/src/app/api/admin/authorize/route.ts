@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
 
-const CLIENT_ID = process.env.CLIENT_ID || '';
-const REDIRECT_URI = process.env.REDIRECT_URI || '';
-
 export async function GET() {
-  if (!CLIENT_ID) {
+  const clientId = process.env.CLIENT_ID || process.env.NEXT_PUBLIC_CLIENT_ID;
+
+  if (!clientId) {
     return NextResponse.json({ error: 'CLIENT_ID 未設定' }, { status: 500 });
   }
 
-  const redirect = encodeURIComponent(`${REDIRECT_URI || 'http://localhost:3000'}/api/auth/callback`);
-  const url = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${redirect}&response_type=code&scope=identify%20guilds`;
+  const redirectUri = process.env.REDIRECT_URI
+    ? `${process.env.REDIRECT_URI}/api/admin/callback`
+    : 'http://localhost:3000/api/admin/callback';
+
+  const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds`;
 
   return NextResponse.json({ url });
 }

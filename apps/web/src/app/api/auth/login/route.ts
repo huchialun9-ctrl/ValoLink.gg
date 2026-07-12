@@ -7,13 +7,16 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'valolink-
 
 export async function GET() {
   const clientId = process.env.CLIENT_ID || process.env.NEXT_PUBLIC_CLIENT_ID;
-  const redirectUri = process.env.REDIRECT_URI || 'https://valolink-gg.onrender.com';
 
   if (!clientId) {
     return NextResponse.json({ error: 'Discord Client ID 未設定，請在 Render 環境變數中設定 CLIENT_ID' }, { status: 500 });
   }
 
-  const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(`${redirectUri}/api/auth/callback`)}&response_type=code&scope=identify`;
+  const redirectUri = process.env.REDIRECT_URI
+    ? `${process.env.REDIRECT_URI}/api/auth/callback`
+    : 'http://localhost:3000/api/auth/callback';
+
+  const url = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify`;
   return NextResponse.redirect(url);
 }
 

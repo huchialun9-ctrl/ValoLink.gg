@@ -22,9 +22,9 @@ export async function GET(request: Request) {
   const host = request.headers.get('host') || 'localhost:3000';
   const protocol = host.startsWith('localhost') ? 'http' : 'https';
 
-  // Always use the production URL as the redirect URI on Render
-  // to match exactly what is registered in the Discord Developer Portal
-  const redirectUri = process.env.REDIRECT_URI || `${protocol}://${host}/api/auth/callback`;
+  const redirectUri = process.env.REDIRECT_URI
+    ? `${process.env.REDIRECT_URI}/api/auth/callback`
+    : `${protocol}://${host}/api/auth/callback`;
 
   const clientId = process.env.CLIENT_ID;
   const clientSecret = process.env.CLIENT_SECRET;
